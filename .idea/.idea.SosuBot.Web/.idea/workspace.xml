@@ -19,6 +19,8 @@
     <list default="true" id="64756719-2b90-46b8-845f-9e11c032dcde" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.SosuBot.Web/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.SosuBot.Web/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SosuBot.PerformanceCalculator" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.PerformanceCalculator" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/Controllers/ApiController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/Controllers/ApiController.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/appsettings.json" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/appsettings.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -351,7 +353,7 @@
       <workItem from="1754166966420" duration="7912000" />
       <workItem from="1754177378822" duration="11109000" />
       <workItem from="1754197187891" duration="18104000" />
-      <workItem from="1756624946372" duration="5144000" />
+      <workItem from="1756624946372" duration="5839000" />
     </task>
     <servers />
   </component>

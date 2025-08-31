@@ -27,7 +27,8 @@ public class ApiController : ControllerBase
         [FromQuery(Name = "score_max_combo")] int? scoreMaxCombo,
         [FromQuery(Name = "mods")] string? mods = null)
     {
-        if (key == null || key != "")
+        // the key was gotten via md5sum of a string "marvelousdreams"
+        if (key == null || key != "527fd2c58f43f6b93050c6b1fbb492c7")
         {
             return Unauthorized();
         }
