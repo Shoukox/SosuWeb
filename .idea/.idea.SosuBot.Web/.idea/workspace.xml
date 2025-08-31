@@ -18,55 +18,7 @@
   <component name="ChangeListManager">
     <list default="true" id="64756719-2b90-46b8-845f-9e11c032dcde" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/.idea.SosuBot.Web/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.SosuBot.Web/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Logging/bin/Debug/net8.0/SosuBot.Logging.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Logging/bin/Debug/net8.0/SosuBot.Logging.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Logging/bin/Debug/net8.0/SosuBot.Logging.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Logging/bin/Debug/net8.0/SosuBot.Logging.pdb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Logging/obj/Debug/net8.0/SosuBot.Logging.AssemblyInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Logging/obj/Debug/net8.0/SosuBot.Logging.AssemblyInfo.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Logging/obj/Debug/net8.0/SosuBot.Logging.AssemblyInfoInputs.cache" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Logging/obj/Debug/net8.0/SosuBot.Logging.AssemblyInfoInputs.cache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Logging/obj/Debug/net8.0/SosuBot.Logging.csproj.FileListAbsolute.txt" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Logging/obj/Debug/net8.0/SosuBot.Logging.csproj.FileListAbsolute.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Logging/obj/Debug/net8.0/SosuBot.Logging.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Logging/obj/Debug/net8.0/SosuBot.Logging.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Logging/obj/Debug/net8.0/SosuBot.Logging.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Logging/obj/Debug/net8.0/SosuBot.Logging.pdb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Logging/obj/Debug/net8.0/SosuBot.Logging.sourcelink.json" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Logging/obj/Debug/net8.0/SosuBot.Logging.sourcelink.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Logging/obj/Debug/net8.0/ref/SosuBot.Logging.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Logging/obj/Debug/net8.0/ref/SosuBot.Logging.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Logging/obj/Debug/net8.0/refint/SosuBot.Logging.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Logging/obj/Debug/net8.0/refint/SosuBot.Logging.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Logging/obj/rider.project.restore.info" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Logging/obj/rider.project.restore.info" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SosuBot.PerformanceCalculator" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.PerformanceCalculator" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/Controllers/ApiController.cs" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/Controllers/ApiController.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/SosuBot.Web.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/SosuBot.Web.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.AspNetCore.Connections.Abstractions.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.AspNetCore.Connections.Abstractions.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.AspNetCore.Http.Connections.Client.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.AspNetCore.Http.Connections.Client.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.AspNetCore.Http.Connections.Common.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.AspNetCore.Http.Connections.Common.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.AspNetCore.SignalR.Client.Core.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.AspNetCore.SignalR.Client.Core.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.AspNetCore.SignalR.Client.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.AspNetCore.SignalR.Client.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.AspNetCore.SignalR.Common.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.AspNetCore.SignalR.Common.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.AspNetCore.SignalR.Protocols.Json.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.AspNetCore.SignalR.Protocols.Json.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.Extensions.DependencyInjection.Abstractions.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.Extensions.DependencyInjection.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.Extensions.DependencyInjection.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.Extensions.Features.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.Extensions.Features.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.Extensions.Logging.Abstractions.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.Extensions.Logging.Abstractions.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.Extensions.Logging.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.Extensions.Logging.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.Extensions.Options.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/Microsoft.Extensions.Options.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/SosuBot.Web.deps.json" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/SosuBot.Web.deps.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/SosuBot.Web.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/SosuBot.Web.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/SosuBot.Web.exe" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/SosuBot.Web.exe" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/SosuBot.Web.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/SosuBot.Web.pdb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.AssemblyInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.AssemblyInfo.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.AssemblyInfoInputs.cache" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.AssemblyInfoInputs.cache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.assets.cache" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.assets.cache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.csproj.AssemblyReference.cache" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.csproj.AssemblyReference.cache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.csproj.CoreCompileInputs.cache" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.csproj.CoreCompileInputs.cache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.csproj.FileListAbsolute.txt" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.csproj.FileListAbsolute.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.pdb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.sourcelink.json" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.sourcelink.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/apphost.exe" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/apphost.exe" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/ref/SosuBot.Web.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/ref/SosuBot.Web.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/refint/SosuBot.Web.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/refint/SosuBot.Web.dll" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/SosuBot.Web.csproj.nuget.dgspec.json" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/SosuBot.Web.csproj.nuget.dgspec.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/project.assets.json" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/project.assets.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/project.nuget.cache" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/project.nuget.cache" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/project.packagespec.json" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/project.packagespec.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/rider.project.model.nuget.info" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/rider.project.model.nuget.info" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/rider.project.restore.info" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/rider.project.restore.info" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -114,6 +66,7 @@
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
     "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "main",
     "node.js.detected.package.eslint": "true",
@@ -398,7 +351,7 @@
       <workItem from="1754166966420" duration="7912000" />
       <workItem from="1754177378822" duration="11109000" />
       <workItem from="1754197187891" duration="18104000" />
-      <workItem from="1756624946372" duration="4446000" />
+      <workItem from="1756624946372" duration="5144000" />
     </task>
     <servers />
   </component>
