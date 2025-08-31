@@ -1,0 +1,14 @@
+C:\Users\shach\Desktop\SosuBot\SosuBot.Logging\bin\Debug\net8.0\SosuBot.Logging.deps.json
+C:\Users\shach\Desktop\SosuBot\SosuBot.Logging\bin\Debug\net8.0\SosuBot.Logging.dll
+C:\Users\shach\Desktop\SosuBot\SosuBot.Logging\bin\Debug\net8.0\SosuBot.Logging.pdb
+C:\Users\shach\Desktop\SosuBot\SosuBot.Logging\obj\Debug\net8.0\SosuBot.Logging.csproj.AssemblyReference.cache
+C:\Users\shach\Desktop\SosuBot\SosuBot.Logging\obj\Debug\net8.0\SosuBot.Logging.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\shach\Desktop\SosuBot\SosuBot.Logging\obj\Debug\net8.0\SosuBot.Logging.AssemblyInfoInputs.cache
+C:\Users\shach\Desktop\SosuBot\SosuBot.Logging\obj\Debug\net8.0\SosuBot.Logging.AssemblyInfo.cs
+C:\Users\shach\Desktop\SosuBot\SosuBot.Logging\obj\Debug\net8.0\SosuBot.Logging.csproj.CoreCompileInputs.cache
+C:\Users\shach\Desktop\SosuBot\SosuBot.Logging\obj\Debug\net8.0\SosuBot.Logging.sourcelink.json
+C:\Users\shach\Desktop\SosuBot\SosuBot.Logging\obj\Debug\net8.0\SosuBot.Logging.dll
+C:\Users\shach\Desktop\SosuBot\SosuBot.Logging\obj\Debug\net8.0\refint\SosuBot.Logging.dll
+C:\Users\shach\Desktop\SosuBot\SosuBot.Logging\obj\Debug\net8.0\SosuBot.Logging.pdb
+C:\Users\shach\Desktop\SosuBot\SosuBot.Logging\obj\Debug\net8.0\ref\SosuBot.Logging.dll
+C:\Users\shach\Desktop\SosuBot\SosuBot.Logging\bin\Debug\net8.0\logConfig.json

@@ -6,6 +6,7 @@
     <projectFile profileName="https">BlazorApp1/BlazorApp1/BlazorApp1.csproj</projectFile>
     <projectFile profileName="http">BlazorApp2/BlazorApp2.csproj</projectFile>
     <projectFile profileName="https">BlazorApp2/BlazorApp2.csproj</projectFile>
+    <projectFile profileName="IIS Express">SosuBot.Web/SosuBot.Web.csproj</projectFile>
     <projectFile profileName="http">SosuBot.Web/SosuBot.Web.csproj</projectFile>
     <projectFile profileName="https">SosuBot.Web/SosuBot.Web.csproj</projectFile>
     <projectFile profileName="http">SosuBot.Web1/SosuBot.Web1.csproj</projectFile>
@@ -16,19 +17,48 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="64756719-2b90-46b8-845f-9e11c032dcde" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.gitmodules" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/OsuApi" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SosuBot.PerformanceCalculator" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/SosuBot.Web/Controllers/ApiController.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.SosuBot.Web/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.SosuBot.Web/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web.sln" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web.sln" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SosuBot.Web.sln.DotSettings.user" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web.sln.DotSettings.user" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/Hubs/RenderJobHub.cs" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/Hubs/RenderJobHub.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/Program.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/SosuBot.Web.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/SosuBot.Web.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/appsettings.Development.json" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/appsettings.Development.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/SosuBot.Web.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/SosuBot.Web.dll" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/SosuBot.Web.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/SosuBot.Web.pdb" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/appsettings.json" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/appsettings.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/SosuBot.Web.staticwebassets.runtime.json" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/SosuBot.Web.staticwebassets.runtime.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/appsettings.Development.json" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/bin/Debug/net8.0/appsettings.Development.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.AssemblyInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.AssemblyInfo.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.AssemblyInfoInputs.cache" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.AssemblyInfoInputs.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.GeneratedMSBuildEditorConfig.editorconfig" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.GeneratedMSBuildEditorConfig.editorconfig" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.GlobalUsings.g.cs" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.GlobalUsings.g.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.assets.cache" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.assets.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.csproj.AssemblyReference.cache" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.csproj.AssemblyReference.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.csproj.CoreCompileInputs.cache" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.csproj.CoreCompileInputs.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.csproj.FileListAbsolute.txt" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.csproj.FileListAbsolute.txt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.genruntimeconfig.cache" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.genruntimeconfig.cache" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.pdb" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.sourcelink.json" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/SosuBot.Web.sourcelink.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/apphost.exe" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/apphost.exe" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/ref/SosuBot.Web.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/ref/SosuBot.Web.dll" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/refint/SosuBot.Web.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/refint/SosuBot.Web.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/staticwebassets.build.json" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/staticwebassets.build.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/staticwebassets.development.json" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/staticwebassets.development.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/staticwebassets.pack.json" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/staticwebassets.pack.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/staticwebassets/msbuild.buildMultiTargeting.SosuBot.Web.props" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/staticwebassets/msbuild.buildMultiTargeting.SosuBot.Web.props" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/staticwebassets/msbuild.buildTransitive.SosuBot.Web.props" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/Debug/net8.0/staticwebassets/msbuild.buildTransitive.SosuBot.Web.props" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/SosuBot.Web.csproj.nuget.dgspec.json" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/SosuBot.Web.csproj.nuget.dgspec.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/SosuBot.Web.csproj.nuget.g.props" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/SosuBot.Web.csproj.nuget.g.props" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/SosuBot.Web.csproj.nuget.g.targets" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/SosuBot.Web.csproj.nuget.g.targets" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/project.assets.json" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/project.assets.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/project.nuget.cache" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/project.nuget.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/project.packagespec.json" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/project.packagespec.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/rider.project.model.nuget.info" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/rider.project.model.nuget.info" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SosuBot.Web/obj/rider.project.restore.info" beforeDir="false" afterPath="$PROJECT_DIR$/SosuBot.Web/obj/rider.project.restore.info" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,26 +71,21 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "Shoukox"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Shoukox&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "git@github.com:Shoukox/SosuBot.Web.git",
-    "accountId": "9d7ee4bf-3c4e-478d-9b64-222723bd4ddd"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;git@github.com:Shoukox/SosuBot.Web.git&quot;,
+    &quot;accountId&quot;: &quot;9d7ee4bf-3c4e-478d-9b64-222723bd4ddd&quot;
   }
-}]]></component>
+}</component>
   <component name="HighlightingSettingsPerFile">
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/4363be3555734c96804bc429c863e56ab2e200/01/039174ff/List`1.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/4363be3555734c96804bc429c863e56ab2e200/9a/5bb50d06/CastHelpers.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/4363be3555734c96804bc429c863e56ab2e200/f5/ba8e05e9/ExceptionDispatchInfo.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/60cd96c6129641d482294412b21756a91dc400/e1/fa1424c9/ActionMethodExecutor.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/8b552087992c442e9a949cb0e015c6dc55600/61/4a70a201/BasicDeliverEventArgs.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/97489bf408494bfb89bfd7e95c7ebf9d30400/15/26aac66e/ServiceProvider.cs" root0="FORCE_HIGHLIGHTING" />
-    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/a61cc9644f754bb1b5e5474d1bf778c076400/60/29dcae77/DefaultHubDispatcher`1.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/661861d2f496c2dbfec4ea5554546fc42e67528c7f93c28d0c05b814a7991/PhysicalFileProvider.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/SosuBot.Web/Controllers/ApiController.cs" root0="FORCE_HIGHLIGHTING" />
   </component>
   <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="ProblemsViewState">
@@ -81,6 +106,7 @@
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
+    "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "main",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
@@ -100,10 +126,10 @@
       <option name="ENV_FILE_PATHS" value="" />
       <option name="REDIRECT_INPUT_PATH" value="" />
       <option name="PTY_MODE" value="Auto" />
+      <option name="MIXED_MODE_DEBUG" value="0" />
       <option name="USE_MONO" value="0" />
       <option name="RUNTIME_ARGUMENTS" value="" />
       <option name="AUTO_ATTACH_CHILDREN" value="0" />
-      <option name="MIXED_MODE_DEBUG" value="0" />
       <option name="PROJECT_PATH" value="$PROJECT_DIR$/BlazorApp1/BlazorApp1.Client/BlazorApp1.Client.csproj" />
       <option name="PROJECT_EXE_PATH_TRACKING" value="1" />
       <option name="PROJECT_ARGUMENTS_TRACKING" value="1" />
@@ -126,10 +152,10 @@
       <option name="ENV_FILE_PATHS" value="" />
       <option name="REDIRECT_INPUT_PATH" value="" />
       <option name="PTY_MODE" value="Auto" />
+      <option name="MIXED_MODE_DEBUG" value="0" />
       <option name="USE_MONO" value="0" />
       <option name="RUNTIME_ARGUMENTS" value="" />
       <option name="AUTO_ATTACH_CHILDREN" value="0" />
-      <option name="MIXED_MODE_DEBUG" value="0" />
       <option name="PROJECT_PATH" value="$PROJECT_DIR$/SosuBot.Web/SosuBot.Web.csproj" />
       <option name="PROJECT_EXE_PATH_TRACKING" value="1" />
       <option name="PROJECT_ARGUMENTS_TRACKING" value="1" />
@@ -151,6 +177,7 @@
       <option name="SHOW_IIS_EXPRESS_OUTPUT" value="0" />
       <option name="SEND_DEBUG_REQUEST" value="1" />
       <option name="ADDITIONAL_IIS_EXPRESS_ARGUMENTS" value="" />
+      <option name="AUTO_ATTACH_CHILDREN" value="0" />
       <method v="2">
         <option name="Build" />
       </method>
@@ -166,6 +193,7 @@
       <option name="SHOW_IIS_EXPRESS_OUTPUT" value="0" />
       <option name="SEND_DEBUG_REQUEST" value="1" />
       <option name="ADDITIONAL_IIS_EXPRESS_ARGUMENTS" value="" />
+      <option name="AUTO_ATTACH_CHILDREN" value="0" />
       <method v="2">
         <option name="Build" />
       </method>
@@ -181,6 +209,7 @@
       <option name="SHOW_IIS_EXPRESS_OUTPUT" value="0" />
       <option name="SEND_DEBUG_REQUEST" value="1" />
       <option name="ADDITIONAL_IIS_EXPRESS_ARGUMENTS" value="" />
+      <option name="AUTO_ATTACH_CHILDREN" value="0" />
       <method v="2">
         <option name="Build" />
       </method>
@@ -196,6 +225,7 @@
       <option name="SHOW_IIS_EXPRESS_OUTPUT" value="0" />
       <option name="SEND_DEBUG_REQUEST" value="1" />
       <option name="ADDITIONAL_IIS_EXPRESS_ARGUMENTS" value="" />
+      <option name="AUTO_ATTACH_CHILDREN" value="0" />
       <method v="2">
         <option name="Build" />
       </method>
@@ -211,6 +241,23 @@
       <option name="SHOW_IIS_EXPRESS_OUTPUT" value="0" />
       <option name="SEND_DEBUG_REQUEST" value="1" />
       <option name="ADDITIONAL_IIS_EXPRESS_ARGUMENTS" value="" />
+      <option name="AUTO_ATTACH_CHILDREN" value="0" />
+      <method v="2">
+        <option name="Build" />
+      </method>
+    </configuration>
+    <configuration name="SosuBot.Web: IIS Express" type="LaunchSettings" factoryName=".NET Launch Settings Profile">
+      <option name="LAUNCH_PROFILE_PROJECT_FILE_PATH" value="$PROJECT_DIR$/SosuBot.Web/SosuBot.Web.csproj" />
+      <option name="LAUNCH_PROFILE_TFM" value="net8.0" />
+      <option name="LAUNCH_PROFILE_NAME" value="IIS Express" />
+      <option name="USE_EXTERNAL_CONSOLE" value="0" />
+      <option name="USE_MONO" value="0" />
+      <option name="RUNTIME_ARGUMENTS" value="" />
+      <option name="GENERATE_APPLICATIONHOST_CONFIG" value="1" />
+      <option name="SHOW_IIS_EXPRESS_OUTPUT" value="0" />
+      <option name="SEND_DEBUG_REQUEST" value="1" />
+      <option name="ADDITIONAL_IIS_EXPRESS_ARGUMENTS" value="" />
+      <option name="AUTO_ATTACH_CHILDREN" value="0" />
       <method v="2">
         <option name="Build" />
       </method>
@@ -226,6 +273,7 @@
       <option name="SHOW_IIS_EXPRESS_OUTPUT" value="0" />
       <option name="SEND_DEBUG_REQUEST" value="1" />
       <option name="ADDITIONAL_IIS_EXPRESS_ARGUMENTS" value="" />
+      <option name="AUTO_ATTACH_CHILDREN" value="0" />
       <method v="2">
         <option name="Build" />
       </method>
@@ -241,6 +289,7 @@
       <option name="SHOW_IIS_EXPRESS_OUTPUT" value="0" />
       <option name="SEND_DEBUG_REQUEST" value="1" />
       <option name="ADDITIONAL_IIS_EXPRESS_ARGUMENTS" value="" />
+      <option name="AUTO_ATTACH_CHILDREN" value="0" />
       <method v="2">
         <option name="Build" />
       </method>
@@ -311,6 +360,7 @@
       <method v="2" />
     </configuration>
     <list>
+      <item itemvalue=".NET Launch Settings Profile.SosuBot.Web: IIS Express" />
       <item itemvalue=".NET Launch Settings Profile.BlazorApp1: http" />
       <item itemvalue=".NET Launch Settings Profile.BlazorApp1: https" />
       <item itemvalue=".NET Launch Settings Profile.BlazorApp2: http" />
@@ -340,6 +390,7 @@
       <workItem from="1754166966420" duration="7912000" />
       <workItem from="1754177378822" duration="11109000" />
       <workItem from="1754197187891" duration="18104000" />
+      <workItem from="1756624946372" duration="954000" />
     </task>
     <servers />
   </component>
