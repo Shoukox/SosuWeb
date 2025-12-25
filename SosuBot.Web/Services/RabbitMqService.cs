@@ -8,10 +8,11 @@ using SosuBot.Web.Services.Models;
 
 namespace SosuBot.Web.Services;
 
-public class RabbitMqService(
-    ILogger<RabbitMqService> logger,
-    IHubContext<RenderJobHub> hubContext)
+public class RabbitMqService
 {
+    private readonly ILogger<RabbitMqService> _logger;
+    private readonly IHubContext<RenderJobHub> _hubContext;
+
     private static int _nextClient;
     private readonly List<string> _webSocketConnectionIds = new();
     private readonly List<RenderJob> _pendingRenderJobs = new();
@@ -20,6 +21,13 @@ public class RabbitMqService(
 
     private static readonly object Lock1 = new();
     private static readonly object Lock2 = new();
+
+    public RabbitMqService(ILogger<RabbitMqService> logger, IHubContext<RenderJobHub> hubContext)
+    {
+        _logger = logger;
+        _hubContext = hubContext;
+        Initialize().Wait();
+    }
 
     public async Task AckMessageAsync(string message)
     {
@@ -36,7 +44,7 @@ public class RabbitMqService(
         RenderJob? renderJob = pendingJobs.FirstOrDefault(m => m.ReplayFileName == message);
         if (renderJob == null)
         {
-            logger.LogError("Render job not found");
+            _logger.LogError("Render job not found");
             return;
         }
 
@@ -60,7 +68,7 @@ public class RabbitMqService(
         RenderJob? renderJob = pendingJobs.FirstOrDefault(m => m.ReplayFileName == message);
         if (renderJob == null)
         {
-            logger.LogError("Render job not found");
+            _logger.LogError("Render job not found");
             return;
         }
 
@@ -86,13 +94,43 @@ public class RabbitMqService(
             int index = Interlocked.Increment(ref _nextClient) % GetConnectionIdsCount();
             string connectionId = GetConnectionId(index);
 
-            await hubContext.Clients.Client(connectionId).SendAsync("RenderJob", message);
+            await _hubContext.Clients.Client(connectionId).SendAsync("RenderJob", message);
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Handling failed");
+            _logger.LogError(ex, "Handling failed");
             //await _channel.BasicNackAsync(ea.DeliveryTag, multiple: false, requeue: true);
         }
+    }
+
+    public async Task Initialize()
+    {
+        var factory = new ConnectionFactory { HostName = "localhost" };
+        var connection = await factory.CreateConnectionAsync();
+        _channel = await connection.CreateChannelAsync();
+
+        await _channel.QueueDeclareAsync("task_queue", true, false,
+            false);
+    }
+
+    /// <summary>
+    ///     Queues a render job
+    /// </summary>
+    /// <param name="replayName">Only filename.extension</param>
+    public async Task QueueJob(string replayName)
+    {
+        var message = replayName;
+        var body = Encoding.UTF8.GetBytes(message);
+
+        var properties = new BasicProperties
+        {
+            Persistent = true
+        };
+
+        if (_channel == null) throw new Exception("Channel not initialized");
+        await _channel.BasicPublishAsync(string.Empty, "render-job-queue", true,
+            properties, body);
+        _logger.LogInformation("Job queued");
     }
 
     public bool JobMessageExists(string message)
@@ -128,7 +166,7 @@ public class RabbitMqService(
         {
             count = _webSocketConnectionIds.Count;
         }
-        
+
         return count;
     }
 
@@ -139,7 +177,7 @@ public class RabbitMqService(
         {
             connectionId = _webSocketConnectionIds[index];
         }
-        
+
         return connectionId;
     }
 
@@ -166,7 +204,7 @@ public class RabbitMqService(
         {
             renderJobs = _pendingRenderJobs.ToArray();
         }
-        
+
         return renderJobs;
     }
 }

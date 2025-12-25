@@ -1,13 +1,35 @@
 ﻿services:
-  sosubot.web:
-    image: sosubot.web
-    build:
-      context: .
-      dockerfile: SosuBot.Web/Dockerfile
+  sosubot-renderqueue:
+    build: ./SosuBot.RenderQueue/
+    depends_on:
+      db-service:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+    environment:
+      ASPNETCORE_HTTP_PORTS: 5000
+      
+  db-service:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    secrets:
+      - db-password
+    volumes:
+      - ./db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: sosubot_renderer
+      POSTGRES_USER: sosubot
+      POSTGRES_PASSWORD_FILE: /run/secrets/db-password
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "sosubot", "-d", "sosubot_renderer" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
-  sosubot.web-1:
-    image: sosubot.web-1
-    build:
-      context: .
-      dockerfile: SosuBot.Web/Dockerfile
-
+      
+secrets:
+  db-password:
+    file: .secrets/.db_password

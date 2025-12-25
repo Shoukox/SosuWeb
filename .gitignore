@@ -1,5 +1,14 @@
-﻿################################################################################
-# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
-################################################################################
-
-/.vs/SosuBot.Web/FileContentIndex
+﻿.vs/
+.idea/
+appsettings*
+bin/
+obj/
+*.db*
+SosuBot/Properties/launchSettings.json
+logs/
+openai-settings.json
+.secrets/
+db-data/
+jwt/
+*.load
+launchSettings.json
