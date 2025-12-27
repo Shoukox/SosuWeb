@@ -1,0 +1,16 @@
+﻿{
+  "Logging": {
+    "LogLevel": {
+      "Default": "Debug"
+    },
+    "Console": {
+      "FormatterName": "CustomConsoleFormatter",
+      "FormatterOptions": {
+        "IncludeScopes": true,
+        "TimestampFormat": "HH:mm:ss.fff",
+        "UseUtcTimestamp": true,
+        "SingleLine": true
+      }
+    }
+  }
+}

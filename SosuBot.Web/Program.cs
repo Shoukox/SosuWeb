@@ -31,6 +31,16 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+if (!Directory.Exists(FilePathConstants.ReplaysPath))
+{
+    Directory.CreateDirectory(FilePathConstants.ReplaysPath);
+}
+if (!Directory.Exists(FilePathConstants.VideoPath))
+{
+    Directory.CreateDirectory(FilePathConstants.VideoPath);
+}
+
 app.UseStaticFiles(new StaticFileOptions()
 {
     FileProvider = new PhysicalFileProvider(FilePathConstants.VideoPath),

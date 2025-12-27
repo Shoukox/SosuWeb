@@ -1,0 +1,6 @@
+[submodule "SosuBot.PerformanceCalculator"]
+	path = SosuBot.PerformanceCalculator
+	url = git@github.com:Shoukox/SosuBot.PerformanceCalculator.git
+[submodule "OsuApi"]
+	path = OsuApi
+	url = git@github.com:Shoukox/OsuApi.git
