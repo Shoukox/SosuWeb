@@ -1,0 +1,84 @@
+.logo {
+    width: 75px;
+    height: 75px;
+    background-image: url("/img/logo.png");
+    background-repeat: no-repeat;
+    background-size: cover
+}
+
+.btn-sign-in {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: rgb(0 0 0);
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+    .btn-sign-in:focus {
+        outline: none;
+        box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+    }
+
+    .btn-sign-in:hover {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(150, 150, 150, 0.3);
+        color: white;
+    }
+
+.btn-sign-up {
+    background: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    padding: 0.5rem 1.5rem;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+    .btn-sign-up:focus {
+        outline: none;
+        box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+    }
+
+    .btn-sign-up:hover {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(150, 150, 150, 0.3);
+        color: white;
+    }
+
+.btn-custom {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: rgb(200, 200, 200);
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+    .btn-custom:focus {
+        outline: none;
+        box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+    }
+
+    .btn-custom:hover {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(150, 150, 150, 0.3);
+        color: white;
+    }
+
+.logged-in-username {
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+
+    background: linear-gradient(270deg,rgba(132, 0, 255, 1) 0%, rgba(255, 0, 144, 1) 50%, rgba(255, 229, 0, 1) 100%);
+    background-size: 600% 600%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientMove 4s ease infinite;
+}

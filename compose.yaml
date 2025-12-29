@@ -1,6 +1,18 @@
 ﻿services:
-  sosubot-renderqueue:
-    build: ./SosuBot.RenderQueue/
+  nginx-service:
+    image: nginx
+    volumes:
+     - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+     - "8080:80"
+    environment:
+     - NGINX_HOST=foobar.com
+     - NGINX_PORT=80
+
+  sosuweb-render-service:
+    build:
+      context: .
+      dockerfile: ./SosuBot.Render/Dockerfile
     depends_on:
       db-service:
         condition: service_healthy
@@ -8,6 +20,18 @@
       - "5000:5000"
     environment:
       ASPNETCORE_HTTP_PORTS: 5000
+
+  sosuweb-service:
+    build:
+      context: .
+      dockerfile: ./SosuWeb/Dockerfile
+    depends_on:
+      - sosuweb-render-service
+      - db-service
+    ports:
+      - "5001:5001"
+    environment:
+      ASPNETCORE_HTTP_PORTS: 5001
       
   db-service:
     image: postgres:17-alpine
@@ -21,7 +45,7 @@
       POSTGRES_USER: sosubot
       POSTGRES_PASSWORD_FILE: /run/secrets/db-password
     ports:
-      - "5432:5432"
+      - "5433:5432"
     healthcheck:
       test: [ "CMD", "pg_isready", "-U", "sosubot", "-d", "sosubot_renderer" ]
       interval: 10s

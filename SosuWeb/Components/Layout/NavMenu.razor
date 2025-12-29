@@ -1,0 +1,61 @@
+﻿@implements IDisposable
+
+@inject NavigationManager NavigationManager
+
+<div class="d-flex justify-content-between align-items-center w-100">
+    <NavLink href="/">
+        <div class="logo"></div>
+    </NavLink>
+    
+    <div class="d-flex gap-2">
+        <AuthorizeView>
+            <Authorized>
+                <div class="nav-item px-3">
+                    <NavLink class="nav-link" href="Account/Manage">
+                        <span class="bi bi-person-fill-nav-menu logged-in-username" aria-hidden="true">@context.User.Identity?.Name</span>
+                    </NavLink>
+                </div>
+                <div class="nav-item px-3">
+                    <form action="Account/Logout" method="post">
+                        <AntiforgeryToken />
+                        <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+                        <button type="submit" class="nav-link">
+                            <span class="bi bi-arrow-bar-left-nav-menu btn-custom" aria-hidden="true">Logout</span>
+                        </button>
+                    </form>
+                </div>
+            </Authorized>
+            <NotAuthorized>
+                <NavLink class="nav-link" href="Account/Login">
+                    <span class="bi bi-person-badge-nav-menu btn btn-sign-in" aria-hidden="true">Login</span>
+                </NavLink>
+                <NavLink class="nav-link" href="Account/Register">
+                    <span class="bi bi-person-badge-nav-menu btn btn-sign-up" aria-hidden="true">Register</span>
+                </NavLink>
+            </NotAuthorized>
+        </AuthorizeView>
+
+    </div>
+</div>
+
+@code {
+    private string? currentUrl;
+
+    protected override void OnInitialized()
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(NavigationManager.Uri);
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentUrl = NavigationManager.ToBaseRelativePath(e.Location);
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+}
+
