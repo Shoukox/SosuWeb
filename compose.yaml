@@ -3,11 +3,19 @@
     image: nginx
     volumes:
      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+     - ./nginx/shoukko.de-cf.pem:/etc/ssl/shoukko.de-cf.pem
+     - ./nginx/shoukko.de-cf.key:/etc/ssl/shoukko.de-cf.key
+     - ./nginx/authenticated_origin_pull_ca.pem:/etc/ssl/authenticated_origin_pull_ca.pem
     ports:
-     - "8080:80"
+     - "443:443"
     environment:
-     - NGINX_HOST=foobar.com
+     - NGINX_HOST=sosubot.shoukko.de
      - NGINX_PORT=80
+    depends_on:
+      - sosuweb-service
+      - sosuweb-render-service
+    networks:
+      - custom
 
   sosuweb-render-service:
     build:
@@ -16,10 +24,12 @@
     depends_on:
       db-service:
         condition: service_healthy
-    ports:
-      - "5000:5000"
+    expose:
+      - "5000"
     environment:
       ASPNETCORE_HTTP_PORTS: 5000
+    networks:
+      - custom
 
   sosuweb-service:
     build:
@@ -28,11 +38,13 @@
     depends_on:
       - sosuweb-render-service
       - db-service
-    ports:
-      - "5001:5001"
+    expose:
+      - "5001"
     environment:
       ASPNETCORE_HTTP_PORTS: 5001
-      
+    networks:
+      - custom
+
   db-service:
     image: postgres:17-alpine
     restart: unless-stopped
@@ -52,8 +64,12 @@
       timeout: 5s
       retries: 5
       start_period: 10s
+    networks:
+      - custom
 
-      
 secrets:
   db-password:
     file: .secrets/.db_password
+
+networks:
+    custom:

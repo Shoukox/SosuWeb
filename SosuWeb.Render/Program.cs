@@ -69,7 +69,11 @@ builder.Services.AddSingleton<IDistributedLockProvider>(_ => new PostgresDistrib
 
 // Build the app
 var app = builder.Build();
-Directory.CreateDirectory(Path.Combine(AppContext.BaseDirectory, "videos"));
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
+    db.Database.Migrate();
+}
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

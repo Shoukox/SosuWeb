@@ -34,6 +34,7 @@ namespace SosuWeb.Render.Controllers
             if (!fullPath.StartsWith(VideosDir))
                 return Forbid();
 
+            Directory.CreateDirectory(VideosDir);
             if (!System.IO.File.Exists(fullPath))
                 return NotFound();
 
