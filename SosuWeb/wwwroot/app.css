@@ -1,5 +1,5 @@
 ﻿html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-family: Arial, sans-serif;
 }
 
 a, .btn-link {
@@ -99,24 +99,23 @@ h1:focus {
 
 .sosubot {
     font-size: 7rem;
-    -webkit-text-stroke: 2.5px rgb(255, 255, 255, 0.75);
-    text-shadow: 0px -1px 20px rgba(0,0,0,0.6);
-    display: block;
+    text-shadow: 0px 0px 50px rgba(255,255,255,0.25);
     line-height: 1;
 }
 
 .sosubot-desc {
     font-size: 2rem;
     display: block;
+    overflow: visible;
     line-height: 0.6;
 }
 
 .title-gradient {
     display: inline-block;
     background: linear-gradient(270deg,rgba(132, 0, 255, 1) 0%, rgba(255, 0, 144, 1) 50%, rgba(255, 229, 0, 1) 100%);
-    background-size: 600% 600%;
-    -webkit-background-clip: text;
+    background-size: 500% 500%;
     -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text;
     animation: gradientMove 4s ease infinite;
 }
 
