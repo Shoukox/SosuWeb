@@ -12,3 +12,4 @@ db-data/
 jwt/
 *.load
 launchSettings.json
+dpkeys*
