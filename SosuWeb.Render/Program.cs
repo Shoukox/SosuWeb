@@ -1,6 +1,7 @@
 using Medallion.Threading;
 using Medallion.Threading.Postgres;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -19,6 +20,13 @@ builder.Services.AddSingleton<VideoService>();
 builder.Services.AddSingleton<SkinService>();
 builder.Services.AddHostedService<RendererOfflineService>();
 builder.Services.AddHostedService<RendererStuckReplayResetService>();
+
+// Data protection
+string dpDirName = "dpkeys-sosuweb-render";
+Directory.CreateDirectory(dpDirName);
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(dpDirName))
+    .SetApplicationName("SosuWeb.Render");
 
 // Logging
 var loggingFileName = "logs/{Date}.log";
