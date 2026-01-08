@@ -6,8 +6,6 @@ using SosuWeb.Database;
 using SosuWeb.Database.Models;
 using SosuWeb.Render.DTO;
 using SosuWeb.Render.Services;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace SosuWeb.Render.Controllers
 {
@@ -106,6 +104,6 @@ namespace SosuWeb.Render.Controllers
                 client_secret = generatedClientSecret,
             });
         }
-    }
 #endif
+    }
 }

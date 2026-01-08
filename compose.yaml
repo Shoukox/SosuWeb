@@ -12,7 +12,7 @@
   sosuweb-render-service:
     build:
       context: .
-      dockerfile: ./SosuBot.Render/Dockerfile
+      dockerfile: ./SosuWeb.Render/Dockerfile
     depends_on:
       db-service:
         condition: service_healthy
