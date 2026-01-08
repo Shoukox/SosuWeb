@@ -36,4 +36,10 @@
 		</ItemGroup>
 		<Copy SourceFiles="@(SecretsFiles)" DestinationFiles="@(SecretsFiles->'$(TargetDir).secrets\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
 	</Target>
+
+	<ItemGroup>
+		<Content Include="..\.dockerignore">
+			<Link>.dockerignore</Link>
+		</Content>
+	</ItemGroup>
 </Project>
