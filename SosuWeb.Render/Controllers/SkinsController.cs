@@ -50,8 +50,15 @@ namespace SosuWeb.Render.Controllers
         [HttpGet("get-available-skins")]
         public async Task<IActionResult> GetAvailableSkins()
         {
-            IEnumerable<string> availableSkins = Directory.GetFiles(SkinsDir).Select(m => skinService.SkinFileNameFromHex(Path.GetFileName(m)));
-            return Ok(availableSkins);
+            if (Directory.Exists(SkinsDir))
+            {
+                IEnumerable<string> availableSkins = Directory.GetFiles(SkinsDir).Select(m => skinService.SkinFileNameFromHex(Path.GetFileName(m)));
+                return Ok(availableSkins);
+            }
+            else
+            {
+                return NotFound(); 
+            }
         }
 
         [HttpPost("upload-skin")]
