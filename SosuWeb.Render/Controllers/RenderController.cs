@@ -205,23 +205,33 @@ namespace SosuWeb.Render.Controllers
             [FromHeader(Name = "Requested-By")] string requestedBy)
         {
             if (file == null || file.Length == 0)
+            {
+                logger.LogWarning($"No replay file uploaded");
                 return BadRequest("No replay file uploaded.");
+            }
 
             if (!Path.GetExtension(file.FileName).Equals(".osr", StringComparison.OrdinalIgnoreCase))
+            {
+                logger.LogWarning($"Invalid replay file type.");
                 return BadRequest("Invalid replay file type.");
+            }
 
             var config = JsonSerializer.Deserialize<DanserConfiguration>(configAsStringJson)!;
 
             if (config.SkinName != "default")
             {
                 if (!Path.GetExtension(config.SkinName)!.Equals(".osk", StringComparison.OrdinalIgnoreCase))
+                {
+                    logger.LogWarning($"Invalid skin file type.");
                     return BadRequest("Invalid skin file type.");
+                }
 
                 string skinsDirectoryPath = SkinsController.SkinsDir;
                 string skinFileNameHex = skinService.SkinFileNameToHex(config.SkinName);
                 string skinPath = Path.Combine(skinsDirectoryPath, skinFileNameHex);
                 if (!System.IO.File.Exists(skinPath))
                 {
+                    logger.LogWarning($"You should firstly upload this skin");
                     return BadRequest("You should firstly upload this skin");
                 }
             }
@@ -255,7 +265,7 @@ namespace SosuWeb.Render.Controllers
         [Authorize(Roles = "sosubot-renderer")]
         [HttpPost("upload-replay-videofile")]
         [Consumes("multipart/form-data")]
-        [RequestSizeLimit(99614720)] // 95 MB - CLOUDFLARE FREE TIER REQUEST BODY SIZE LIMITS 
+        [RequestSizeLimit(99614720)] // 95 MB
         [RequestFormLimits(MultipartBodyLengthLimit = 99614720)] // 95 MB
         public async Task<IActionResult> UploadReplayVideofile(
             [FromForm] IFormFile file,
@@ -323,7 +333,7 @@ namespace SosuWeb.Render.Controllers
         }
 
         [HttpGet("get-online-renderers")]
-        public async Task<IActionResult> GetOnlineRenderers([FromQuery(Name = "job-id")] int jobId)
+        public async Task<IActionResult> GetOnlineRenderers()
         {
             var onlineRenderers = await rendererContext.Renderers
                 .Where(r => r.IsOnline)
