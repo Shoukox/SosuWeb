@@ -13,6 +13,7 @@ namespace SosuWeb.Render.Controllers
         public static string SkinsDir = Path.Combine(AppContext.BaseDirectory, "skins");
 
         [HttpGet("{skinFileName}")]
+        [HttpHead("{skinFileName}")]
         public async Task<IActionResult> GetSkin(string skinFileName)
         {
             var fullPath = Path.GetFullPath(Path.Combine(SkinsDir, skinFileName));

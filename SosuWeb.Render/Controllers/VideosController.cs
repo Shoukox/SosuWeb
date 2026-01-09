@@ -27,6 +27,7 @@ namespace SosuWeb.Render.Controllers
         }
 
         [HttpGet("{fileName}")]
+        [HttpHead("{fileName}")]
         public async Task<IActionResult> GetVideo(string fileName)
         {
             var fullPath = Path.GetFullPath(Path.Combine(VideosDir, fileName));
