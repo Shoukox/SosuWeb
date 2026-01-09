@@ -66,17 +66,17 @@ namespace SosuWeb.Render.Controllers
                 jobId
             );
 
-            var stream = new FileStream(
-                fullPath,
-                FileMode.Open,
-                FileAccess.Read,
-                FileShare.Read,
-                bufferSize: 64 * 1024,
-                useAsync: true
-            );
+            //var stream = new FileStream(
+            //    fullPath,
+            //    FileMode.Open,
+            //    FileAccess.Read,
+            //    FileShare.Read,
+            //    bufferSize: 64 * 1024,
+            //    useAsync: true
+            //);
 
-            return File(
-                stream,
+            return PhysicalFile(
+                fullPath,
                 "video/mp4",
                 enableRangeProcessing: true
             );
