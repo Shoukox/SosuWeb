@@ -28,8 +28,8 @@
     depends_on:
       db-service:
         condition: service_healthy
-    expose:
-      - "5000"
+    ports:
+      - "5000:5000"
     environment:
       ASPNETCORE_HTTP_PORTS: 5000
     networks:
@@ -42,8 +42,8 @@
     depends_on:
       - sosuweb-render-service
       - db-service
-    expose:
-      - "5001"
+    ports:
+      - "5001:5001"
     environment:
       ASPNETCORE_HTTP_PORTS: 5001
     networks:
