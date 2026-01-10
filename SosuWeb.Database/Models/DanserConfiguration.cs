@@ -23,5 +23,7 @@ namespace SosuWeb.Database.Models
         public bool Mods { get; set; } = false;
         public bool KeyOverlay { get; set; } = false;
         public bool Combo { get; set; } = false;
+        public bool Leaderboard { get; set; } = false;
+        public bool StrainGraph { get; set; } = true;
     }
 }

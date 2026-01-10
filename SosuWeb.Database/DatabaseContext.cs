@@ -29,7 +29,7 @@ namespace SosuWeb.Database
                         JsonSerializer.Serialize(v))!
             );
             var renderSettingsConverter = new ValueConverter<DanserConfiguration, string>(
-                v => System.Text.Json.JsonSerializer.Serialize(v, jsonConfig),
+                v => JsonSerializer.Serialize(v, jsonConfig),
                 v => JsonSerializer.Deserialize<DanserConfiguration>(v)!);
             modelBuilder.Entity<RenderJob>()
                 .Property(e => e.RenderSettings)

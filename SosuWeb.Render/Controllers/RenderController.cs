@@ -329,6 +329,7 @@ namespace SosuWeb.Render.Controllers
                 }
 
                 renderer.BytesRendered += output.Length;
+                await rendererContext.SaveChangesAsync();
             }
             return Ok();
         }
