@@ -118,7 +118,7 @@ namespace SosuWeb.Render.Controllers
 
             await using (await synchronizationProvider.AcquireLockAsync("render-job-lock"))
             {
-                var freeJob = await rendererContext.RenderJobs.FirstOrDefaultAsync(m => !m.IsComplete && m.RenderingBy == -1);
+                var freeJob = await rendererContext.RenderJobs.OrderBy(m => m.JobId).FirstOrDefaultAsync(m => !m.IsComplete && m.RenderingBy == -1);
                 if (freeJob == null)
                 {
                     return NotFound();
@@ -129,7 +129,7 @@ namespace SosuWeb.Render.Controllers
                 freeJob.RenderingStartedAt = DateTime.UtcNow;
                 freeJob.RenderingLastUpdate = DateTime.UtcNow;
 
-                if (clientId is 1234 or 1235)
+                if (clientId is 1234)
                 {
                     freeJob.RenderSettings.VideoWidth = 1920;
                     freeJob.RenderSettings.VideoHeight = 1080;
@@ -341,9 +341,27 @@ namespace SosuWeb.Render.Controllers
                 {
                     r.RendererId,
                     r.LastSeen,
+                    r.RendererName,
+                    r.UsedGPU,
                 })
                 .ToListAsync();
             return Ok(onlineRenderers);
+        }
+
+        [HttpGet("get-waitqueue-length")]
+        public async Task<IActionResult> GetWaitqueueLength([FromQuery(Name = "job-id")] int jobId)
+        {
+            var renderJob = await rendererContext.RenderJobs.FirstOrDefaultAsync(r => r.JobId == jobId);
+            if (renderJob == null)
+            {
+                return NotFound();
+            }
+
+            int maxRenderJobId = rendererContext.RenderJobs.OrderByDescending(r => r.JobId).First(r => r.RenderingBy != -1).JobId;
+            int waitJobs = Math.Max(1, jobId - maxRenderJobId) - 1;
+            logger.LogInformation($"MaxRenderJobId: {maxRenderJobId}, waitJobs: {waitJobs}, givenJobId: {jobId}");
+
+            return Ok(waitJobs);
         }
 
         [HttpPost("get-render-job-info")]

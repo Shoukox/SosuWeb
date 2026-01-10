@@ -104,6 +104,31 @@ namespace SosuWeb.Render.Controllers
                 client_secret = generatedClientSecret,
             });
         }
+
+        /// <summary>
+        /// ONLY IN DEBUG. Revoke client_secret
+        /// </summary>
+        /// <param name="clientId">client id</param>
+        /// <returns></returns>
+        [HttpGet("revoke-client-secret")]
+        public async Task<IActionResult> RevokeClientSecret([FromQuery(Name = "client_id")] int clientId)
+        {
+            if (rendererContext.RendererCredentials.FirstOrDefault(m => m.ClientId == clientId) is not { } rendererCredentials)
+            {
+                return NotFound();
+            }
+
+            var hasher = new PasswordHasher<RendererCredentials>();
+            var generatedClientSecret = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+            rendererCredentials.ClientSecretHash = hasher.HashPassword(rendererCredentials, generatedClientSecret);
+            await rendererContext.SaveChangesAsync();
+
+            return Ok(new
+            {
+                client_id = rendererCredentials.ClientId,
+                client_secret = generatedClientSecret,
+            });
+        }
 #endif
     }
 }
