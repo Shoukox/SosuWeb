@@ -327,8 +327,9 @@ namespace SosuWeb.Render.Controllers
                     }
                     System.IO.File.Delete(partPath);
                 }
-            }
 
+                renderer.BytesRendered += output.Length;
+            }
             return Ok();
         }
 
