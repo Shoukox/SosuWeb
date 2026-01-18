@@ -72,7 +72,6 @@ namespace SosuWeb.Render.Controllers
                     access_token = jwtToken,
                     token_type = "Bearer",
                     expires_in = conf.GetValue<int>("Jwt:ExpirationInMinutes"),
-
                 }
             );
         }

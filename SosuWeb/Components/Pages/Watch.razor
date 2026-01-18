@@ -1,0 +1,76 @@
+﻿@page "/watch/{videoFile}"
+
+<PageTitle>Video</PageTitle>
+@using Blazorise;
+@using SosuWeb.Database
+
+<Row Class="container-fluid mt-5" Style="z-index: 1;" >
+    <Column ColumnSize="ColumnSize.Is12.OnTablet.Is9.OnDesktop">
+        <Video Source="@VideoUrl"
+               Autoplay="false"
+               Controls="true"
+               Class="video-player"
+               AutomaticallyHideControls="true"
+               DoubleClickToFullscreen="true" ,
+               Ratio="16:9"
+               Style="width:100%; height:auto;">
+        </Video>
+    </Column>
+    <Column ColumnSize="ColumnSize.Is12.OnTablet.Is3.OnDesktop" Background="Background.Transparent">
+        <Card Style="background: linear-gradient(#ce7ee4, #aa50c3, #cf55f1)">
+            <CardHeader Class="text-black">
+                <CardTitle Size="4">
+                    @VideoTitle
+                </CardTitle>
+            </CardHeader>
+            <CardBody>
+                <CardText>
+                    @VideoDescription
+                </CardText>
+            </CardBody>
+        </Card>
+    </Column>
+</Row>
+
+@code {
+    private bool isPlaying = false;
+    private bool isMuted = false;
+    private string CurrentTime = "";
+
+    [Parameter] public string VideoTitle { get; set; } = "Название видео (тест)";
+    [Parameter] public string VideoDescription { get; set; } = "Описание видео (тест)";
+    [Parameter] public string VideoFile { get; set; } = string.Empty;
+    [Parameter] public string VideoUrl { get; set; } = string.Empty;
+
+    [Inject] private DatabaseContext _databaseContext { get; set; } = default!;
+    [Inject] private NavigationManager _navigation { get; set; } = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        Span<byte> buffer = stackalloc byte[512];
+        if (!Convert.TryFromBase64String(VideoFile[..^4], buffer, out var written))
+        {
+            _navigation.NavigateTo("/not-found");
+            return;
+        }
+        string decoded = System.Text.Encoding.UTF8.GetString(buffer[..written]);
+
+        var parts = decoded.Split('_', 2);
+        if (!int.TryParse(parts[0], out var jobId))
+        {
+            _navigation.NavigateTo("/not-found");
+            return;
+        }
+
+        var renderJob = await _databaseContext.RenderJobs.FindAsync(jobId);
+        if(renderJob is null)
+        {
+            _navigation.NavigateTo("/not-found");
+            return;
+        }
+
+        VideoUrl = "http://sosubot.shoukko.de/videos/MzIxXzEzNDEzMTg4MjY3Nzg5MzMwMA==.mp4";
+    }
+}

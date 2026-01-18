@@ -10,6 +10,7 @@ public record RenderJob
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public int JobId { get; set; }
     public string VideoUri { get; set; } = "";
+    public string VideoLocalPath { get; set; } = "";
     public string ReplayPath { get; set; } = "";
     public DateTime RequestedAt { get; set; }
     public string RequestedBy { get; set; } = null!;

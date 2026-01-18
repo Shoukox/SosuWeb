@@ -329,6 +329,7 @@ namespace SosuWeb.Render.Controllers
                 }
 
                 renderer.BytesRendered += output.Length;
+                renderJob.VideoLocalPath = Path.GetFullPath(finalFile);
                 await rendererContext.SaveChangesAsync();
             }
             return Ok();

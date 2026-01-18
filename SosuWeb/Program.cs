@@ -2,12 +2,13 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
-using MudBlazor.Services;
 using SosuWeb.Components;
 using SosuWeb.Components.Account;
 using SosuWeb.Database;
 using SosuWeb.Database.Models;
+using Blazorise;
+using Blazorise.Bootstrap5;
+using Blazorise.Icons.FontAwesome;
 
 namespace SosuWeb
 {
@@ -54,7 +55,12 @@ namespace SosuWeb
                 .AddDefaultTokenProviders();
 
             builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
-            builder.Services.AddMudServices();
+            builder.Services.AddBlazorise(options =>
+                            {
+                                options.Immediate = true;
+                            })
+                            .AddBootstrap5Providers()
+                            .AddFontAwesomeIcons();
 
             var app = builder.Build();
 

@@ -12,18 +12,20 @@ namespace SosuWeb.Database.Models
         public double GeneralVolume { get; set; } = 0.5;
         public double MusicVolume { get; set; } = 0.5;
         public double SampleVolume { get; set; } = 0.5;
-        public bool HitErrorMeter { get; set; } = false;
+        public double BackgroundDim { get; set; } = 0.95;
+        public bool HitErrorMeter { get; set; } = true;
         public bool AimErrorMeter { get; set; } = false;
         public bool HPBar { get; set; } = true;
-        public bool ShowPP { get; set; } = false;
-        public bool HitCounter { get; set; } = false;
+        public bool ShowPP { get; set; } = true;
+        public bool HitCounter { get; set; } = true;
         public bool IgnoreFailsInReplays { get; set; } = false;
         public bool Video { get; set; } = false;
         public bool Storyboard { get; set; } = false;
-        public bool Mods { get; set; } = false;
-        public bool KeyOverlay { get; set; } = false;
-        public bool Combo { get; set; } = false;
+        public bool Mods { get; set; } = true;
+        public bool KeyOverlay { get; set; } = true;
+        public bool Combo { get; set; } = true;
         public bool Leaderboard { get; set; } = false;
         public bool StrainGraph { get; set; } = true;
+        public bool MotionBlur { get; set; } = false;
     }
 }
