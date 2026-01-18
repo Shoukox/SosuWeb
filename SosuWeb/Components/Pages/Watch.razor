@@ -63,12 +63,13 @@
         await base.OnInitializedAsync();
 
         Span<byte> buffer = stackalloc byte[512];
-        if (!Convert.TryFromBase64String(VideoFile[..^4], buffer, out var written))
+        byte[] bytes = System.Text.Encoding.ASCII.GetBytes(VideoFile);
+        if (!System.Buffers.Text.Base64Url.IsValid(bytes) || !System.Buffers.Text.Base64Url.TryDecodeFromUtf8(bytes, buffer, out var written))
         {
             _navigation.NavigateTo("/not-found");
             return;
         }
-        string decoded = System.Text.Encoding.UTF8.GetString(buffer[..written]);
+        string decoded = System.Text.Encoding.ASCII.GetString(buffer[..written]);
 
         var parts = decoded.Split('_', 2);
         if (!int.TryParse(parts[0], out var jobId))

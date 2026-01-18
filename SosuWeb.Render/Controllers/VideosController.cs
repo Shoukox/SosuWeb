@@ -45,7 +45,8 @@ namespace SosuWeb.Render.Controllers
             var filenameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
 
             Span<byte> buffer = stackalloc byte[512];
-            if (!Convert.TryFromBase64String(filenameWithoutExt, buffer, out var written))
+            byte[] bytes = Encoding.ASCII.GetBytes(filenameWithoutExt);
+            if (!System.Buffers.Text.Base64Url.IsValid(bytes) || !System.Buffers.Text.Base64Url.TryDecodeFromUtf8(bytes, buffer, out var written))
                 return Forbid();
 
             string decoded = Encoding.UTF8.GetString(buffer[..written]);

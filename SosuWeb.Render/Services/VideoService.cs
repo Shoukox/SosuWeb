@@ -1,4 +1,5 @@
 ﻿using SosuWeb.Database.Models;
+using System.Buffers.Text;
 using System.Text;
 
 namespace SosuWeb.Render.Services
@@ -7,7 +8,7 @@ namespace SosuWeb.Render.Services
     {
         public string GetReplayVideoFileName(int jobId, DateTime requestedAt)
         {
-            return Convert.ToBase64String(Encoding.ASCII.GetBytes($"{jobId}_{requestedAt.ToFileTimeUtc()}")) + ".mp4";
+            return Base64Url.EncodeToString(Encoding.ASCII.GetBytes($"{jobId}_{requestedAt.ToFileTimeUtc()}")) + ".mp4";
         }
     }
 }
