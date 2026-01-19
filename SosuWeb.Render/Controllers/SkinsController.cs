@@ -64,8 +64,8 @@ namespace SosuWeb.Render.Controllers
 
         [HttpPost("upload-skin")]
         [Consumes("multipart/form-data")]
-        [RequestSizeLimit(67108864)] // 64 MB
-        [RequestFormLimits(MultipartBodyLengthLimit = 67108864)] // 64 MB
+        [RequestSizeLimit(167772160)] // 160 MB (+10)
+        [RequestFormLimits(MultipartBodyLengthLimit = 157286400)] // 150 MB
         public async Task<IActionResult> UploadSkin([FromForm] IFormFile skinFile)
         {
             if (skinFile == null || skinFile.Length == 0)
