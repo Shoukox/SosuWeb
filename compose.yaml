@@ -25,6 +25,7 @@
      - ./SosuWeb.Render/skins:/app/skins
      - ./SosuWeb.Render/videos:/app/videos
      - ./SosuWeb.Render/replays:/app/replays
+     - ./SosuWeb.Render/thumbnails:/app/thumbnails  
     depends_on:
       db-service:
         condition: service_healthy

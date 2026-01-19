@@ -18,6 +18,7 @@ builder.Services.AddControllers();
 builder.Services.AddSingleton<JwtTokenService>();
 builder.Services.AddSingleton<VideoService>();
 builder.Services.AddSingleton<SkinService>();
+builder.Services.AddSingleton<ThumbnailService>();
 builder.Services.AddHostedService<RendererOfflineService>();
 builder.Services.AddHostedService<RendererStuckReplayResetService>();
 

@@ -72,6 +72,37 @@ namespace SosuWeb.Render.Controllers
         }
 
         [Authorize(Roles = "sosubot-renderer")]
+        [HttpPost("set-renderjob-metadata")]
+        public async Task<IActionResult> SetRenderJobMetadata([FromQuery(Name = "job-id")] int jobId)
+        {
+            var clientId = int.Parse(User.Claims.First(m => m.Type == "client-id").Value);
+            if (rendererContext.Renderers.FirstOrDefault(m => m.RendererId == clientId) is not { IsOnline: true } renderer)
+            {
+                return BadRequest(new
+                {
+                    message = "You should send a heartbeat"
+                });
+            }
+
+            var renderJob = await rendererContext.RenderJobs.FirstOrDefaultAsync(r =>
+                r.JobId == jobId
+                && r.RenderingBy == renderer.RendererId
+                && r.IsComplete == false);
+            if (renderJob == null)
+            {
+                return NotFound();
+            }
+            logger.LogInformation($"JobId: {renderJob.JobId}. Setting metadata");
+            renderJob.RenderingLastUpdate = DateTime.UtcNow;
+            renderJob.PlayerName = Request.Headers["PlayerName"].ToString() ?? renderJob.PlayerName;
+            renderJob.MapName = Request.Headers["MapName"].ToString() ?? renderJob.PlayerName;
+            logger.LogInformation($"JobId: {renderJob.JobId}. Metadata: player name = {renderJob.PlayerName}, map name = {renderJob.MapName}");
+
+            await rendererContext.SaveChangesAsync();
+            return Ok();
+        }
+
+        [Authorize(Roles = "sosubot-renderer")]
         [HttpPost("finish-rendering")]
         public async Task<IActionResult> FinishRendering([FromQuery(Name = "job-id")] int jobId)
         {
@@ -96,7 +127,6 @@ namespace SosuWeb.Render.Controllers
             renderJob.RenderingLastUpdate = DateTime.UtcNow;
             renderJob.IsComplete = true;
             renderJob.IsSuccess = true;
-            renderJob.VideoUri = $"{Request.Scheme}://{Request.Host.ToString().Replace("localhost", "127.0.0.1")}{Request.PathBase}/videos/{videoService.GetReplayVideoFileName(renderJob.JobId, renderJob.RequestedAt)}";
             renderer.CompletedJobs.Add(renderJob);
 
             await rendererContext.SaveChangesAsync();
@@ -330,6 +360,7 @@ namespace SosuWeb.Render.Controllers
 
                 renderer.BytesRendered += output.Length;
                 renderJob.VideoLocalPath = Path.GetFullPath(finalFile);
+                renderJob.VideoUri = $"{Request.Scheme}://{Request.Host.ToString().Replace("localhost", "127.0.0.1")}{Request.PathBase}/videos/{replayVideoFileName}";
                 await rendererContext.SaveChangesAsync();
             }
             return Ok();

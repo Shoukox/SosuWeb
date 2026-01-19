@@ -229,3 +229,16 @@ input::placeholder {
 .input-label {
     color: rgba(0,0,0,0.5);
 }
+
+.watch-card {
+    background-color: rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(2px);
+}
+
+.watch-card-header {
+    color: rgb(218, 131, 255)
+}
+
+.watch-card-body {
+    color: rgb(151, 65, 188)
+}

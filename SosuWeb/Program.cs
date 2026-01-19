@@ -83,7 +83,6 @@ namespace SosuWeb
             }
 
             app.UseStatusCodePagesWithReExecute("/not-found", createScopeForStatusCodePages: true);
-            app.UseHttpsRedirection();
 
             app.UseAntiforgery();
 

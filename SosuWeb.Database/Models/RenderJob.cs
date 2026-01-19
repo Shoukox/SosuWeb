@@ -11,6 +11,10 @@ public record RenderJob
     public int JobId { get; set; }
     public string VideoUri { get; set; } = "";
     public string VideoLocalPath { get; set; } = "";
+    public string PlayerName { get; set; } = "Unknown";
+    public string MapName { get; set; } = "Unknown";
+    public string VideoThumbnailUri { get; set; } = "";
+    public string VideoThumbnailLocalPath { get; set; } = "";
     public string ReplayPath { get; set; } = "";
     public DateTime RequestedAt { get; set; }
     public string RequestedBy { get; set; } = null!;

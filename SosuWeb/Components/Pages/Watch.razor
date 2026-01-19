@@ -1,26 +1,26 @@
 ﻿@page "/watch/{videoFile}"
 
-<PageTitle>Video</PageTitle>
+<PageTitle>@(PlayerName)'s Replay</PageTitle>
 @using Blazorise;
 @using SosuWeb.Database
 
 <HeadContent>
+    <!-- Primary Open Graph -->
     <meta property="og:type" content="video.other">
-    <meta property="og:title" content="Название видео (тест)">
-    <meta property="og:description" content="Описание видео (тест)">
+    <meta property="og:title" content="@(PlayerName)'s Replay">
+    <meta property="og:description" content="@VideoDescription">
     <meta property="og:video" content="@VideoUrl">
     <meta property="og:video:type" content="video/mp4">
-@*     <meta property="og:video:width" content="1920">
-    <meta property="og:video:height" content="1080"> *@
-@*     <meta property="og:image" content="https://sosubot.shoukko.de/videos/MzIyXzEzNDEzMTkwNTk1Njc5MDQ2MA==.jpg">
-    <meta property="og:image:width" content="1920">
-    <meta property="og:image:height" content="1080"> *@
+    <meta property="og:video:width" content="@VideoWidth" />
+    <meta property="og:video:height" content="@VideoHeight" />
+    <meta property="og:url" content="@_navigation.Uri" />
+    <meta property="og:image" content="@ThumbnailUri" />
 </HeadContent>
 
 <Row Class="container-fluid mt-3" Style="z-index: 1;" >
     <Column ColumnSize="ColumnSize.Is12.OnTablet.Is9.OnDesktop">
         <Video Source="@(VideoUrl)"
-               Autoplay="false"
+               Autoplay="true"
                Controls="true"
                Class="video-player"
                AutomaticallyHideControls="true"
@@ -30,17 +30,21 @@
         </Video>
     </Column>
     <Column ColumnSize="ColumnSize.Is12.OnTablet.Is3.OnDesktop" Background="Background.Transparent">
-        <Card Style="background: linear-gradient(#ce7ee4, #aa50c3, #cf55f1)">
-            <CardHeader Class="text-black">
+        <Card Class="watch-card">
+            <CardHeader Class="watch-card-header">
                 <CardTitle Size="4">
-                    @VideoTitle
+                    <Span Class="watch-card-playername">@PlayerName</Span> at <Span Class="watch-card-mapname">@MapName</Span>
                 </CardTitle>
             </CardHeader>
-            <CardBody>
+            <CardBody Class="watch-card-body">
                 <CardText>
                     @VideoDescription
                 </CardText>
+                <CardText>
+                    @RenderSkin
+                </CardText>
             </CardBody>
+
         </Card>
     </Column>
 </Row>
@@ -50,10 +54,15 @@
     private bool isMuted = false;
     private string CurrentTime = "";
 
-    [Parameter] public string VideoTitle { get; set; } = "Название видео (тест)";
-    [Parameter] public string VideoDescription { get; set; } = "Описание видео (тест)";
+    [Parameter] public int VideoWidth { get; set; } = 1280;
+    [Parameter] public int VideoHeight { get; set; } = 720;
+    [Parameter] public string VideoDescription { get; set; } = "brrrrrrrrrrrrrrrrrrrrr";
+    [Parameter] public string RenderSkin { get; set; } = string.Empty;
     [Parameter] public string VideoFile { get; set; } = string.Empty;
     [Parameter] public string VideoUrl { get; set; } = string.Empty;
+    [Parameter] public string ThumbnailUri { get; set; } = string.Empty;
+    [Parameter] public string PlayerName { get; set; } = string.Empty;
+    [Parameter] public string MapName { get; set; } = string.Empty;
 
     [Inject] private DatabaseContext _databaseContext { get; set; } = default!;
     [Inject] private NavigationManager _navigation { get; set; } = default!;
@@ -85,6 +94,12 @@
             return;
         }
 
+        VideoWidth = renderJob.RenderSettings.VideoWidth;
+        VideoHeight = renderJob.RenderSettings.VideoHeight;
+        RenderSkin = renderJob.RenderSettings.SkinName;
         VideoUrl = renderJob.VideoUri;
+        PlayerName = renderJob.PlayerName;
+        MapName = renderJob.MapName;
+        ThumbnailUri = string.IsNullOrWhiteSpace(renderJob.VideoThumbnailUri) ? _navigation.ToAbsoluteUri("img/default_thumbnail.jpg").AbsoluteUri : renderJob.VideoThumbnailUri;
     }
 }
