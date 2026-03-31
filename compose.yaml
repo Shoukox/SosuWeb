@@ -6,6 +6,7 @@
      - ./nginx/shoukko.de-cf.pem:/etc/ssl/shoukko.de-cf.pem
      - ./nginx/shoukko.de-cf.key:/etc/ssl/shoukko.de-cf.key
      - ./nginx/authenticated_origin_pull_ca.pem:/etc/ssl/authenticated_origin_pull_ca.pem
+    restart: always
     ports:
      - "443:443"
     environment:
@@ -21,6 +22,7 @@
     build:
       context: .
       dockerfile: ./SosuWeb.Render/Dockerfile
+    restart: always
     volumes:
      - ./SosuWeb.Render/skins:/app/skins
      - ./SosuWeb.Render/videos:/app/videos
@@ -40,6 +42,7 @@
     build:
       context: .
       dockerfile: ./SosuWeb/Dockerfile
+    restart: always
     depends_on:
       - sosuweb-render-service
       - db-service
@@ -52,7 +55,7 @@
 
   db-service:
     image: postgres:17-alpine
-    restart: unless-stopped
+    restart: always
     secrets:
       - db-password
     volumes:
