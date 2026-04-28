@@ -133,6 +133,38 @@ namespace SosuWeb.Render.Controllers
             return Ok();
         }
 
+        [Authorize(Roles = "sosubot")]
+        [HttpPost("cancel")]
+        public async Task<IActionResult> CancelRender([FromQuery(Name = "job-id")] int jobId)
+        {
+            var clientId = int.Parse(User.Claims.First(m => m.Type == "client-id").Value);
+            if (rendererContext.Renderers.FirstOrDefault(m => m.RendererId == clientId) is not { IsOnline: true } renderer)
+            {
+                return BadRequest(new
+                {
+                    message = "You should send a heartbeat"
+                });
+            }
+
+            var renderJob = await rendererContext.RenderJobs.FirstOrDefaultAsync(r =>
+                r.JobId == jobId
+                && r.RenderingBy == renderer.RendererId
+                && r.IsComplete == false);
+            if (renderJob == null)
+            {
+                return NotFound();
+            }
+            logger.LogInformation($"JobId: {renderJob.JobId}. Cancelled");
+            renderJob.RenderingLastUpdate = DateTime.UtcNow;
+            renderJob.IsComplete = true;
+            renderJob.IsSuccess = false;
+            renderJob.FailureReason = "Cancelled";
+            renderer.CompletedJobs.Add(renderJob);
+
+            await rendererContext.SaveChangesAsync();
+            return Ok();
+        }
+
         [Authorize(Roles = "sosubot-renderer")]
         [HttpPost("get-next-render-job")]
         public async Task<IActionResult> GetNextRenderJob()

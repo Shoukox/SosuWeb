@@ -21,11 +21,11 @@ namespace SosuWeb.Render.Services
         }
 
         // todo create only if user has provided a valid client-secret
-        public string CreateToken(string name, int clientId)
+        public string CreateToken(string name, int clientId, string role)
         {
             var claims = new Claim[]
             {
-                new Claim("role", _conf["Jwt:Role"]!),
+                new Claim("role", role),
                 new Claim("name", name),
                 new Claim("client-id", $"{clientId}"),
             };

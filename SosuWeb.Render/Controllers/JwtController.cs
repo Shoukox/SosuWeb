@@ -44,28 +44,32 @@ namespace SosuWeb.Render.Controllers
                 await rendererContext.SaveChangesAsync();
             }
 
-            try
+            if (clientCredentials.Scope == "renderer")
             {
-                var renderer = new Renderer()
+                try
                 {
-                    RendererId = clientId,
-                    LastSeen = DateTime.UtcNow,
-                    IsOnline = true
-                };
-                await rendererContext.Renderers.AddAsync(renderer);
-                await rendererContext.SaveChangesAsync();
-            }
-            catch (DbUpdateException dbEx) when (dbEx.InnerException is PostgresException pe && pe.SqlState == PostgresErrorCodes.UniqueViolation)
-            {
-                // duplicate
-            }
-            catch (Exception e)
-            {
-                logger.LogError(e.ToString());
-                return StatusCode(500);
+                    var renderer = new Renderer()
+                    {
+                        RendererId = clientId,
+                        LastSeen = DateTime.UtcNow,
+                        IsOnline = true
+                    };
+                    await rendererContext.Renderers.AddAsync(renderer);
+                    await rendererContext.SaveChangesAsync();
+                }
+                catch (DbUpdateException dbEx) when (dbEx.InnerException is PostgresException pe && pe.SqlState == PostgresErrorCodes.UniqueViolation)
+                {
+                    // duplicate
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e.ToString());
+                    return StatusCode(500);
+                }
             }
 
-            var jwtToken = jwtService.CreateToken(name: "todo", clientId: clientId);
+            var role = clientCredentials.Scope == "renderer" ? "sosubot-renderer" : "sosubot";
+            var jwtToken = jwtService.CreateToken(name: "todo", clientId: clientId, role: role);
             return Ok(
                 new
                 {
