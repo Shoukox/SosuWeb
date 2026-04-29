@@ -1,14 +1,15 @@
+using Blazorise;
+using Blazorise.Bootstrap5;
+using Blazorise.Icons.FontAwesome;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using SosuWeb.Components;
 using SosuWeb.Components.Account;
 using SosuWeb.Database;
 using SosuWeb.Database.Models;
-using Blazorise;
-using Blazorise.Bootstrap5;
-using Blazorise.Icons.FontAwesome;
 
 namespace SosuWeb
 {
@@ -23,7 +24,7 @@ namespace SosuWeb
                 .AddInteractiveServerComponents();
 
             // Data protection
-            string dpDirName = "dpkeys-sosuweb"; 
+            string dpDirName = "dpkeys-sosuweb";
             Directory.CreateDirectory(dpDirName);
             builder.Services.AddDataProtection()
                 .PersistKeysToFileSystem(new DirectoryInfo(dpDirName))
@@ -42,7 +43,8 @@ namespace SosuWeb
 
             var connectionString = builder.Configuration.GetConnectionString("Postgres") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
             builder.Services.AddDbContext<DatabaseContext>(options =>
-                options.UseNpgsql(connectionString));
+                options.UseNpgsql(connectionString)
+                .ConfigureWarnings(m => m.Ignore(RelationalEventId.PendingModelChangesWarning)));
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
             builder.Services.AddIdentityCore<ApplicationUser>(options =>
