@@ -7,7 +7,7 @@ namespace SosuWeb.Render.Services
         private readonly ILogger<RendererStuckReplayResetService> _logger;
         private readonly IServiceProvider _serviceProvider;
 
-        public const int RenderTimeoutInSeconds = 180;
+        public const int RenderTimeoutInSeconds = 600;
 
         public RendererStuckReplayResetService(
             IServiceProvider serviceProvider,
@@ -45,11 +45,10 @@ namespace SosuWeb.Render.Services
                             renderJob.RenderingStartedAt
                         );
 
-                        renderJob.RenderingBy = -1;
-                        renderJob.IsComplete = false;
-                        renderJob.RenderingStartedAt = default;
-                        renderJob.RenderingLastUpdate = default;
-                        renderJob.ProgressPercent = 0;
+                        // just finish them
+                        renderJob.IsComplete = true;
+                        renderJob.IsSuccess = false;
+                        renderJob.FailureReason = "Stuck";
                     }
 
                     await db.SaveChangesAsync(stoppingToken);

@@ -30,6 +30,10 @@ namespace SosuWeb.Render.Controllers
         [HttpHead("{fileName}")]
         public async Task<IActionResult> GetVideo(string fileName)
         {
+            if (!fileName.EndsWith(".mp4"))
+            {
+                fileName += ".mp4"; 
+            }
             var fullPath = Path.GetFullPath(Path.Combine(VideosDir, fileName));
 
             if (!fullPath.StartsWith(VideosDir))

@@ -20,20 +20,21 @@ namespace SosuWeb.Render.Controllers
             {
                 return Forbid("grant_type should be client_credentials");
             }
-            if (clientCredentials.Scope != "renderer")
+            if (clientCredentials.Scope is not "renderer" and not "sosubot")
             {
-                return Forbid("scope should be renderer");
+                return Forbid("scope should be renderer/sosubot");
             }
 
             int clientId = clientCredentials.ClientId;
-            var rendererCredentials = rendererContext.RendererCredentials.FirstOrDefault(m => m.ClientId == clientId);
+            var rendererCredentials = rendererContext.OAuthCredentials.FirstOrDefault(m => m.ClientId == clientId);
             if (rendererCredentials == null)
             {
                 return Forbid();
             }
 
-            var hasher = new PasswordHasher<RendererCredentials>();
+            var hasher = new PasswordHasher<OAuthCredentials>();
             var clientSecretAuthResult = hasher.VerifyHashedPassword(rendererCredentials, rendererCredentials.ClientSecretHash, clientCredentials.ClientSecret);
+
             if (clientSecretAuthResult == PasswordVerificationResult.Failed)
             {
                 return Forbid();
@@ -89,14 +90,14 @@ namespace SosuWeb.Render.Controllers
         [HttpGet("generate-credentials")]
         public async Task<IActionResult> GenerateCredentials([FromQuery(Name = "client_id")] int clientId)
         {
-            var rendererCredentials = rendererContext.RendererCredentials.Add(new()
+            var rendererCredentials = rendererContext.OAuthCredentials.Add(new()
             {
                 ClientId = clientId,
                 ClientSecretHash = "", // to be set further
                 CreatedAt = DateTime.UtcNow,
             });
 
-            var hasher = new PasswordHasher<RendererCredentials>();
+            var hasher = new PasswordHasher<OAuthCredentials>();
             var generatedClientSecret = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
             rendererCredentials.Entity.ClientSecretHash = hasher.HashPassword(rendererCredentials.Entity, generatedClientSecret);
             await rendererContext.SaveChangesAsync();
@@ -116,12 +117,12 @@ namespace SosuWeb.Render.Controllers
         [HttpGet("revoke-client-secret")]
         public async Task<IActionResult> RevokeClientSecret([FromQuery(Name = "client_id")] int clientId)
         {
-            if (rendererContext.RendererCredentials.FirstOrDefault(m => m.ClientId == clientId) is not { } rendererCredentials)
+            if (rendererContext.OAuthCredentials.FirstOrDefault(m => m.ClientId == clientId) is not { } rendererCredentials)
             {
                 return NotFound();
             }
 
-            var hasher = new PasswordHasher<RendererCredentials>();
+            var hasher = new PasswordHasher<OAuthCredentials>();
             var generatedClientSecret = Convert.ToBase64String(Guid.NewGuid().ToByteArray());
             rendererCredentials.ClientSecretHash = hasher.HashPassword(rendererCredentials, generatedClientSecret);
             await rendererContext.SaveChangesAsync();

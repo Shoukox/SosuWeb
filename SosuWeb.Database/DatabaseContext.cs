@@ -13,7 +13,7 @@ namespace SosuWeb.Database
 
         public DbSet<RenderJob> RenderJobs { get; set; }
         public DbSet<Renderer> Renderers { get; set; }
-        public DbSet<RendererCredentials> RendererCredentials { get; set; }
+        public DbSet<OAuthCredentials> OAuthCredentials { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -22,15 +22,15 @@ namespace SosuWeb.Database
             var jsonConfig = new JsonSerializerOptions() { WriteIndented = false };
 
             // Convert render settings
-            var renderSettingsComparer = new ValueComparer<DanserConfiguration>(
+            var renderSettingsComparer = new ValueComparer<RenderSettings>(
                 (l, r) => JsonSerializer.Serialize(l) == JsonSerializer.Serialize(r),
                 v => JsonSerializer.Serialize(v).GetHashCode(),
-                v => JsonSerializer.Deserialize<DanserConfiguration>(
+                v => JsonSerializer.Deserialize<RenderSettings>(
                         JsonSerializer.Serialize(v))!
             );
-            var renderSettingsConverter = new ValueConverter<DanserConfiguration, string>(
+            var renderSettingsConverter = new ValueConverter<RenderSettings, string>(
                 v => JsonSerializer.Serialize(v, jsonConfig),
-                v => JsonSerializer.Deserialize<DanserConfiguration>(v)!);
+                v => JsonSerializer.Deserialize<RenderSettings>(v)!);
             modelBuilder.Entity<RenderJob>()
                 .Property(e => e.RenderSettings)
                 .HasConversion(renderSettingsConverter, renderSettingsComparer)

@@ -127,7 +127,6 @@ namespace SosuWeb.Render.Controllers
             renderJob.RenderingLastUpdate = DateTime.UtcNow;
             renderJob.IsComplete = true;
             renderJob.IsSuccess = true;
-            renderer.CompletedJobs.Add(renderJob);
 
             await rendererContext.SaveChangesAsync();
             return Ok();
@@ -138,17 +137,8 @@ namespace SosuWeb.Render.Controllers
         public async Task<IActionResult> CancelRender([FromQuery(Name = "job-id")] int jobId)
         {
             var clientId = int.Parse(User.Claims.First(m => m.Type == "client-id").Value);
-            if (rendererContext.Renderers.FirstOrDefault(m => m.RendererId == clientId) is not { IsOnline: true } renderer)
-            {
-                return BadRequest(new
-                {
-                    message = "You should send a heartbeat"
-                });
-            }
-
             var renderJob = await rendererContext.RenderJobs.FirstOrDefaultAsync(r =>
                 r.JobId == jobId
-                && r.RenderingBy == renderer.RendererId
                 && r.IsComplete == false);
             if (renderJob == null)
             {
@@ -159,7 +149,6 @@ namespace SosuWeb.Render.Controllers
             renderJob.IsComplete = true;
             renderJob.IsSuccess = false;
             renderJob.FailureReason = "Cancelled";
-            renderer.CompletedJobs.Add(renderJob);
 
             await rendererContext.SaveChangesAsync();
             return Ok();
@@ -190,12 +179,6 @@ namespace SosuWeb.Render.Controllers
                 freeJob.RenderingBy = renderer.RendererId;
                 freeJob.RenderingStartedAt = DateTime.UtcNow;
                 freeJob.RenderingLastUpdate = DateTime.UtcNow;
-
-                if (clientId is 1234)
-                {
-                    freeJob.RenderSettings.VideoWidth = 1920;
-                    freeJob.RenderSettings.VideoHeight = 1080;
-                }
 
                 await rendererContext.SaveChangesAsync();
                 return Ok(freeJob);
@@ -257,6 +240,7 @@ namespace SosuWeb.Render.Controllers
             return Ok();
         }
 
+        [Authorize(Roles = "sosubot")]
         [HttpPost("queue-replay")]
         [Consumes("multipart/form-data")]
         [RequestSizeLimit(67108864)] // 64 MB
@@ -278,7 +262,7 @@ namespace SosuWeb.Render.Controllers
                 return BadRequest("Invalid replay file type.");
             }
 
-            var config = JsonSerializer.Deserialize<DanserConfiguration>(configAsStringJson)!;
+            var config = JsonSerializer.Deserialize<RenderSettings>(configAsStringJson)!;
 
             if (config.SkinName != "default")
             {

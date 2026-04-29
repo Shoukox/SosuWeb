@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SosuWeb.Database.Models
 {
-    public record DanserConfiguration
+    public record RenderSettings
     {
         public int VideoWidth { get; set; } = 1280;
         public int VideoHeight { get; set; } = 720;
@@ -28,5 +28,7 @@ namespace SosuWeb.Database.Models
         public bool StrainGraph { get; set; } = true;
         public bool MotionBlur { get; set; } = false;
         public bool UseExperimentalRenderer { get; set; } = false;
+        public double ManiaScrollSpeed { get; set; } = 25.0;
+        public bool ManiaScrollDirectionUp { get; set; } = false;
     }
 }

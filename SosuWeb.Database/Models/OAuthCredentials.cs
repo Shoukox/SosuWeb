@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SosuWeb.Database.Models
 {
-    public record RendererCredentials
+    public record OAuthCredentials
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
