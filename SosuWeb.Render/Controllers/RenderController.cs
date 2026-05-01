@@ -13,16 +13,36 @@ namespace SosuWeb.Render.Controllers
     [Route("/render")]
     public class RenderController(DatabaseContext rendererContext, ILogger<RenderController> logger, IDistributedLockProvider synchronizationProvider, VideoService videoService, SkinService skinService) : ControllerBase
     {
+        private static readonly TimeSpan RendererQueueFreshnessWindow = TimeSpan.FromSeconds(10);
+
+        private int GetClientId() => int.Parse(User.Claims.First(m => m.Type == "client-id").Value);
+
+        private async Task<Renderer?> GetRendererAsync(int clientId)
+            => await rendererContext.Renderers.FirstOrDefaultAsync(m => m.RendererId == clientId);
+
+        private async Task<Renderer?> GetOnlineRendererAsync(int clientId)
+            => await rendererContext.Renderers.FirstOrDefaultAsync(m => m.RendererId == clientId && m.IsOnline);
+
+        private ObjectResult RendererHeartbeatRequired()
+            => BadRequest(new { message = "You should send a heartbeat" });
+
+        private void ClearRendererCurrentJob(Renderer renderer)
+        {
+            renderer.IsRendering = false;
+            renderer.CurrentJobId = -1;
+        }
+
         [Authorize(Roles = "sosubot-renderer")]
         [HttpPost("heartbeat")]
         public async Task<IActionResult> Heartbeat()
         {
             Console.WriteLine(string.Join(";", User.Claims.Select(m => m.ToString())) + "\n");
 
-            var clientId = int.Parse(User.Claims.First(m => m.Type == "client-id").Value);
-            if (rendererContext.Renderers.FirstOrDefault(m => m.RendererId == clientId) is not { } renderer)
+            var clientId = GetClientId();
+            var renderer = await GetRendererAsync(clientId);
+            if (renderer == null)
             {
-                logger.LogWarning($"Heartbeat error, clientId: {clientId}");
+                logger.LogWarning("Heartbeat error, clientId: {ClientId}", clientId);
                 return StatusCode(500);
             }
 
@@ -30,7 +50,7 @@ namespace SosuWeb.Render.Controllers
             renderer.IsOnline = true;
 
             await rendererContext.SaveChangesAsync();
-            logger.LogInformation("Heartbeat received from renderer " + clientId);
+            logger.LogInformation("Heartbeat received from renderer {RendererId}", clientId);
             return Ok();
         }
 
@@ -46,13 +66,11 @@ namespace SosuWeb.Render.Controllers
                 });
             }
 
-            var clientId = int.Parse(User.Claims.First(m => m.Type == "client-id").Value);
-            if (rendererContext.Renderers.FirstOrDefault(m => m.RendererId == clientId) is not { IsOnline: true } renderer)
+            var clientId = GetClientId();
+            var renderer = await GetOnlineRendererAsync(clientId);
+            if (renderer == null)
             {
-                return BadRequest(new
-                {
-                    message = "You should send a heartbeat"
-                });
+                return RendererHeartbeatRequired();
             }
 
             var renderJob = await rendererContext.RenderJobs.FirstOrDefaultAsync(r =>
@@ -63,7 +81,13 @@ namespace SosuWeb.Render.Controllers
             {
                 return NotFound();
             }
-            logger.LogInformation($"JobId: {renderJob.JobId}, progress: {progress}");
+
+            if (!renderer.IsRendering || renderer.CurrentJobId != jobId)
+            {
+                return Conflict(new { message = "This renderer is not assigned to the specified active job." });
+            }
+
+            logger.LogInformation("JobId: {JobId}, progress: {Progress}", renderJob.JobId, progress);
             renderJob.ProgressPercent = progress;
             renderJob.RenderingLastUpdate = DateTime.UtcNow;
 
@@ -75,13 +99,11 @@ namespace SosuWeb.Render.Controllers
         [HttpPost("set-renderjob-metadata")]
         public async Task<IActionResult> SetRenderJobMetadata([FromQuery(Name = "job-id")] int jobId)
         {
-            var clientId = int.Parse(User.Claims.First(m => m.Type == "client-id").Value);
-            if (rendererContext.Renderers.FirstOrDefault(m => m.RendererId == clientId) is not { IsOnline: true } renderer)
+            var clientId = GetClientId();
+            var renderer = await GetOnlineRendererAsync(clientId);
+            if (renderer == null)
             {
-                return BadRequest(new
-                {
-                    message = "You should send a heartbeat"
-                });
+                return RendererHeartbeatRequired();
             }
 
             var renderJob = await rendererContext.RenderJobs.FirstOrDefaultAsync(r =>
@@ -92,11 +114,19 @@ namespace SosuWeb.Render.Controllers
             {
                 return NotFound();
             }
-            logger.LogInformation($"JobId: {renderJob.JobId}. Setting metadata");
+
+            if (!renderer.IsRendering || renderer.CurrentJobId != jobId)
+            {
+                return Conflict(new { message = "This renderer is not assigned to the specified active job." });
+            }
+
+            logger.LogInformation("JobId: {JobId}. Setting metadata", renderJob.JobId);
             renderJob.RenderingLastUpdate = DateTime.UtcNow;
-            renderJob.PlayerName = Request.Headers["PlayerName"].ToString() ?? renderJob.PlayerName;
-            renderJob.MapName = Request.Headers["MapName"].ToString() ?? renderJob.PlayerName;
-            logger.LogInformation($"JobId: {renderJob.JobId}. Metadata: player name = {renderJob.PlayerName}, map name = {renderJob.MapName}");
+            var playerName = Request.Headers["PlayerName"].ToString();
+            var mapName = Request.Headers["MapName"].ToString();
+            renderJob.PlayerName = string.IsNullOrWhiteSpace(playerName) ? renderJob.PlayerName : playerName;
+            renderJob.MapName = string.IsNullOrWhiteSpace(mapName) ? renderJob.MapName : mapName;
+            logger.LogInformation("JobId: {JobId}. Metadata: player name = {PlayerName}, map name = {MapName}", renderJob.JobId, renderJob.PlayerName, renderJob.MapName);
 
             await rendererContext.SaveChangesAsync();
             return Ok();
@@ -106,13 +136,11 @@ namespace SosuWeb.Render.Controllers
         [HttpPost("finish-rendering")]
         public async Task<IActionResult> FinishRendering([FromQuery(Name = "job-id")] int jobId)
         {
-            var clientId = int.Parse(User.Claims.First(m => m.Type == "client-id").Value);
-            if (rendererContext.Renderers.FirstOrDefault(m => m.RendererId == clientId) is not { IsOnline: true } renderer)
+            var clientId = GetClientId();
+            var renderer = await GetOnlineRendererAsync(clientId);
+            if (renderer == null)
             {
-                return BadRequest(new
-                {
-                    message = "You should send a heartbeat"
-                });
+                return RendererHeartbeatRequired();
             }
 
             var renderJob = await rendererContext.RenderJobs.FirstOrDefaultAsync(r =>
@@ -123,10 +151,17 @@ namespace SosuWeb.Render.Controllers
             {
                 return NotFound();
             }
-            logger.LogInformation($"JobId: {renderJob.JobId}. Completed");
+
+            if (!renderer.IsRendering || renderer.CurrentJobId != jobId)
+            {
+                return Conflict(new { message = "This renderer is not assigned to the specified active job." });
+            }
+
+            logger.LogInformation("JobId: {JobId}. Completed", renderJob.JobId);
             renderJob.RenderingLastUpdate = DateTime.UtcNow;
             renderJob.IsComplete = true;
             renderJob.IsSuccess = true;
+            ClearRendererCurrentJob(renderer);
 
             await rendererContext.SaveChangesAsync();
             return Ok();
@@ -136,7 +171,6 @@ namespace SosuWeb.Render.Controllers
         [HttpPost("cancel")]
         public async Task<IActionResult> CancelRender([FromQuery(Name = "job-id")] int jobId)
         {
-            var clientId = int.Parse(User.Claims.First(m => m.Type == "client-id").Value);
             var renderJob = await rendererContext.RenderJobs.FirstOrDefaultAsync(r =>
                 r.JobId == jobId
                 && r.IsComplete == false);
@@ -144,11 +178,21 @@ namespace SosuWeb.Render.Controllers
             {
                 return NotFound();
             }
-            logger.LogInformation($"JobId: {renderJob.JobId}. Cancelled");
+
+            logger.LogInformation("JobId: {JobId}. Cancelled", renderJob.JobId);
             renderJob.RenderingLastUpdate = DateTime.UtcNow;
             renderJob.IsComplete = true;
             renderJob.IsSuccess = false;
             renderJob.FailureReason = "Cancelled";
+
+            if (renderJob.RenderingBy != -1)
+            {
+                var renderer = await GetRendererAsync(renderJob.RenderingBy);
+                if (renderer != null)
+                {
+                    ClearRendererCurrentJob(renderer);
+                }
+            }
 
             await rendererContext.SaveChangesAsync();
             return Ok();
@@ -158,27 +202,54 @@ namespace SosuWeb.Render.Controllers
         [HttpPost("get-next-render-job")]
         public async Task<IActionResult> GetNextRenderJob()
         {
-            var clientId = int.Parse(User.Claims.First(m => m.Type == "client-id").Value);
-            if (rendererContext.Renderers.FirstOrDefault(m => m.RendererId == clientId) is not { IsOnline: true } renderer)
-            {
-                return BadRequest(new
-                {
-                    message = "You should send a heartbeat"
-                });
-            }
+            var clientId = GetClientId();
 
             await using (await synchronizationProvider.AcquireLockAsync("render-job-lock"))
             {
-                var freeJob = await rendererContext.RenderJobs.OrderBy(m => m.JobId).FirstOrDefaultAsync(m => !m.IsComplete && m.RenderingBy == -1);
+                var renderer = await GetOnlineRendererAsync(clientId);
+                if (renderer == null)
+                {
+                    return RendererHeartbeatRequired();
+                }
+
+                if (renderer.IsRendering && renderer.CurrentJobId != -1)
+                {
+                    return Conflict(new { message = "Renderer is already assigned an active render job.", jobId = renderer.CurrentJobId });
+                }
+
+                var freeJob = await rendererContext.RenderJobs
+                    .OrderBy(m => m.JobId)
+                    .FirstOrDefaultAsync(m => !m.IsComplete && m.RenderingBy == -1);
                 if (freeJob == null)
                 {
                     return NotFound();
                 }
 
-                logger.LogInformation($"Assigning JobId: {freeJob.JobId} to RendererId: {renderer.RendererId}");
+                var now = DateTime.UtcNow;
+                var priorityRenderers = await rendererContext.Renderers
+                    .Where(r => r.IsOnline && !r.IsRendering && r.LastSeen >= now - RendererQueueFreshnessWindow)
+                    .OrderByDescending(r => r.PerformancePoints)
+                    .ThenByDescending(r => r.LastSeen)
+                    .ThenBy(r => r.RendererId)
+                    .Select(r => new { r.RendererId, r.PerformancePoints })
+                    .ToListAsync();
+
+                if (priorityRenderers.Count > 0 && priorityRenderers[0].RendererId != renderer.RendererId)
+                {
+                    return Conflict(new
+                    {
+                        message = "Another actively available renderer currently has higher priority for the next queued render job.",
+                        nextRendererId = priorityRenderers[0].RendererId,
+                        nextRendererPerformancePoints = priorityRenderers[0].PerformancePoints
+                    });
+                }
+
+                logger.LogInformation("Assigning JobId: {JobId} to RendererId: {RendererId} (PerformancePoints: {PerformancePoints})", freeJob.JobId, renderer.RendererId, renderer.PerformancePoints);
                 freeJob.RenderingBy = renderer.RendererId;
-                freeJob.RenderingStartedAt = DateTime.UtcNow;
-                freeJob.RenderingLastUpdate = DateTime.UtcNow;
+                freeJob.RenderingStartedAt = now;
+                freeJob.RenderingLastUpdate = now;
+                renderer.IsRendering = true;
+                renderer.CurrentJobId = freeJob.JobId;
 
                 await rendererContext.SaveChangesAsync();
                 return Ok(freeJob);
@@ -189,13 +260,11 @@ namespace SosuWeb.Render.Controllers
         [HttpPost("download-replay")]
         public async Task<IActionResult> DownloadReplay([FromQuery(Name = "job-id")] int jobId)
         {
-            var clientId = int.Parse(User.Claims.First(m => m.Type == "client-id").Value);
-            if (rendererContext.Renderers.FirstOrDefault(m => m.RendererId == clientId) is not { IsOnline: true } renderer)
+            var clientId = GetClientId();
+            var renderer = await GetOnlineRendererAsync(clientId);
+            if (renderer == null)
             {
-                return BadRequest(new
-                {
-                    message = "You should send a heartbeat"
-                });
+                return RendererHeartbeatRequired();
             }
 
             var renderJob = await rendererContext.RenderJobs.FirstOrDefaultAsync(r => r.JobId == jobId);
@@ -203,7 +272,7 @@ namespace SosuWeb.Render.Controllers
             {
                 return NotFound();
             }
-            logger.LogInformation($"JobId: {renderJob.JobId}. Replay downloaded");
+            logger.LogInformation("JobId: {JobId}. Replay downloaded", renderJob.JobId);
             return PhysicalFile(renderJob.ReplayPath, "application/octet-stream", $"replay_{jobId}.osr");
         }
 
@@ -211,13 +280,11 @@ namespace SosuWeb.Render.Controllers
         [HttpPost("failure")]
         public async Task<IActionResult> Failure([FromQuery(Name = "job-id")] int jobId, [FromQuery(Name = "reason")] string failureReason, [FromQuery] bool rerender = true)
         {
-            var clientId = int.Parse(User.Claims.First(m => m.Type == "client-id").Value);
-            if (rendererContext.Renderers.FirstOrDefault(m => m.RendererId == clientId) is not { IsOnline: true } renderer)
+            var clientId = GetClientId();
+            var renderer = await GetOnlineRendererAsync(clientId);
+            if (renderer == null)
             {
-                return BadRequest(new
-                {
-                    message = "You should send a heartbeat"
-                });
+                return RendererHeartbeatRequired();
             }
 
             var renderJob = await rendererContext.RenderJobs.FirstOrDefaultAsync(r =>
@@ -229,14 +296,21 @@ namespace SosuWeb.Render.Controllers
                 return Forbid();
             }
 
+            if (!renderer.IsRendering || renderer.CurrentJobId != jobId)
+            {
+                return Conflict(new { message = "This renderer is not assigned to the specified active job." });
+            }
+
             renderJob.IsSuccess = false;
             renderJob.FailureReason = failureReason;
             renderJob.IsComplete = !rerender;
+            renderJob.RenderingBy = rerender ? -1 : renderJob.RenderingBy;
             renderJob.RenderingStartedAt = default;
             renderJob.RenderingLastUpdate = default;
             renderJob.ProgressPercent = 0;
+            ClearRendererCurrentJob(renderer);
             await rendererContext.SaveChangesAsync();
-            logger.LogInformation($"JobId: {renderJob.JobId}. Failed: {failureReason}");
+            logger.LogInformation("JobId: {JobId}. Failed: {FailureReason}", renderJob.JobId, failureReason);
             return Ok();
         }
 
@@ -252,13 +326,13 @@ namespace SosuWeb.Render.Controllers
         {
             if (file == null || file.Length == 0)
             {
-                logger.LogWarning($"No replay file uploaded");
+                logger.LogWarning("No replay file uploaded");
                 return BadRequest("No replay file uploaded.");
             }
 
             if (!Path.GetExtension(file.FileName).Equals(".osr", StringComparison.OrdinalIgnoreCase))
             {
-                logger.LogWarning($"Invalid replay file type.");
+                logger.LogWarning("Invalid replay file type.");
                 return BadRequest("Invalid replay file type.");
             }
 
@@ -268,7 +342,7 @@ namespace SosuWeb.Render.Controllers
             {
                 if (!Path.GetExtension(config.SkinName)!.Equals(".osk", StringComparison.OrdinalIgnoreCase))
                 {
-                    logger.LogWarning($"Invalid skin file type.");
+                    logger.LogWarning("Invalid skin file type.");
                     return BadRequest("Invalid skin file type.");
                 }
 
@@ -277,7 +351,7 @@ namespace SosuWeb.Render.Controllers
                 string skinPath = Path.Combine(skinsDirectoryPath, skinFileNameHex);
                 if (!System.IO.File.Exists(skinPath))
                 {
-                    logger.LogWarning($"You should firstly upload this skin");
+                    logger.LogWarning("You should firstly upload this skin");
                     return BadRequest("You should firstly upload this skin");
                 }
             }
@@ -300,7 +374,7 @@ namespace SosuWeb.Render.Controllers
             await rendererContext.RenderJobs.AddAsync(renderJob);
             await rendererContext.SaveChangesAsync();
 
-            logger.LogInformation($"New render job queued. JobId: {renderJob.JobId}, RequestedBy: {requestedBy}");
+            logger.LogInformation("New render job queued. JobId: {JobId}, RequestedBy: {RequestedBy}", renderJob.JobId, requestedBy);
             return Accepted(new
             {
                 jobId = renderJob.JobId,
@@ -334,13 +408,11 @@ namespace SosuWeb.Render.Controllers
                 return BadRequest("Invalid chunk index");
             }
 
-            var clientId = int.Parse(User.Claims.First(m => m.Type == "client-id").Value);
-            if (rendererContext.Renderers.FirstOrDefault(m => m.RendererId == clientId) is not { IsOnline: true } renderer)
+            var clientId = GetClientId();
+            var renderer = await GetOnlineRendererAsync(clientId);
+            if (renderer == null)
             {
-                return BadRequest(new
-                {
-                    message = "You should send a heartbeat"
-                });
+                return RendererHeartbeatRequired();
             }
 
             var renderJob = await rendererContext.RenderJobs.FirstOrDefaultAsync(r => r.JobId == jobId);
@@ -356,7 +428,7 @@ namespace SosuWeb.Render.Controllers
             {
                 await file.CopyToAsync(fs);
             }
-            logger.LogInformation($"JobId: {renderJob.JobId}. Got chunk {chunkIndex + 1}/{totalChunks}");
+            logger.LogInformation("JobId: {JobId}. Got chunk {ChunkNumber}/{TotalChunks}", renderJob.JobId, chunkIndex + 1, totalChunks);
 
             if (chunkIndex + 1 == totalChunks)
             {
@@ -393,6 +465,9 @@ namespace SosuWeb.Render.Controllers
                     r.LastSeen,
                     r.RendererName,
                     r.UsedGPU,
+                    r.IsRendering,
+                    r.CurrentJobId,
+                    r.PerformancePoints
                 })
                 .ToListAsync();
             return Ok(onlineRenderers);
@@ -409,7 +484,7 @@ namespace SosuWeb.Render.Controllers
 
             int maxRenderJobId = rendererContext.RenderJobs.OrderByDescending(r => r.JobId).First(r => r.RenderingBy != -1).JobId;
             int waitJobs = Math.Max(1, jobId - maxRenderJobId) - 1;
-            logger.LogInformation($"MaxRenderJobId: {maxRenderJobId}, waitJobs: {waitJobs}, givenJobId: {jobId}");
+            logger.LogInformation("MaxRenderJobId: {MaxRenderJobId}, waitJobs: {WaitJobs}, givenJobId: {JobId}", maxRenderJobId, waitJobs, jobId);
 
             return Ok(waitJobs);
         }

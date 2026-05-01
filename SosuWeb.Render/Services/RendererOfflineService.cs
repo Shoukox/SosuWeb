@@ -31,17 +31,21 @@ namespace SosuWeb.Render.Services
                     foreach (var renderer in inactiveRenderers)
                     {
                         renderer.IsOnline = false;
+                        renderer.IsRendering = false;
+                        renderer.CurrentJobId = -1;
+
                         var renderJobs = db.RenderJobs.Where(m => m.RenderingBy == renderer.RendererId && !m.IsComplete);
-                        foreach(var renderJob in renderJobs)
+                        foreach (var renderJob in renderJobs)
                         {
                             renderJob.RenderingBy = -1;
                             renderJob.IsComplete = false;
                             renderJob.RenderingStartedAt = default;
                             renderJob.RenderingLastUpdate = default;
                             renderJob.ProgressPercent = 0;
-                            _logger.LogInformation($"RenderJob {renderJob.JobId} was released");
+                            _logger.LogInformation("RenderJob {JobId} was released", renderJob.JobId);
                         }
-                        _logger.LogInformation($"Renderer {renderer.RendererId} marked offline due to inactivity.");
+
+                        _logger.LogInformation("Renderer {RendererId} marked offline due to inactivity.", renderer.RendererId);
                     }
 
                     await db.SaveChangesAsync(stoppingToken);

@@ -18,6 +18,9 @@ namespace SosuWeb.Database.Models
         public string UsedGPU { get; set; } = "undefined";
         public string UsedCPU { get; set; } = "undefined";
         public bool EncodingWithCPU { get; set; } = false;
+        public bool IsRendering { get; set; } = false;
+        public int CurrentJobId { get; set; } = -1;
+        public int PerformancePoints { get; set; } = 0; // Calculated from the renderer's performance benchmarks, used for job assignment prioritization. Bigger number means higher priority.
         public List<RenderJob> CompletedJobs { get; set; } = new();
     }
 }

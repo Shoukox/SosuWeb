@@ -1,4 +1,5 @@
-﻿using SosuWeb.Database;
+﻿using Microsoft.EntityFrameworkCore;
+using SosuWeb.Database;
 
 namespace SosuWeb.Render.Services
 {
@@ -28,13 +29,14 @@ namespace SosuWeb.Render.Services
 
                     var timeout = DateTime.UtcNow.AddSeconds(-RenderTimeoutInSeconds);
 
-                    var stuckRenderJobs = db.RenderJobs
+                    var stuckRenderJobs = await db.RenderJobs
                         .Where(r =>
                             r.RenderingBy != -1 &&
                             !r.IsComplete &&
                             r.RenderingLastUpdate <= timeout &&
                             string.IsNullOrEmpty(r.FailureReason)
-                        );
+                        )
+                        .ToListAsync(stoppingToken);
 
                     foreach (var renderJob in stuckRenderJobs)
                     {
@@ -44,6 +46,13 @@ namespace SosuWeb.Render.Services
                             renderJob.RenderingBy,
                             renderJob.RenderingStartedAt
                         );
+
+                        var renderer = await db.Renderers.FirstOrDefaultAsync(r => r.RendererId == renderJob.RenderingBy, stoppingToken);
+                        if (renderer != null)
+                        {
+                            renderer.IsRendering = false;
+                            renderer.CurrentJobId = -1;
+                        }
 
                         // just finish them
                         renderJob.IsComplete = true;
