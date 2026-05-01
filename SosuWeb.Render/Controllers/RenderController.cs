@@ -1,328 +1,148 @@
-﻿using Medallion.Threading;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SosuWeb.Database;
-using SosuWeb.Database.Models;
 using SosuWeb.Render.Services;
-using System.Text.Json;
 
 namespace SosuWeb.Render.Controllers
 {
     [ApiController]
     [Route("/render")]
-    public class RenderController(DatabaseContext rendererContext, ILogger<RenderController> logger, IDistributedLockProvider synchronizationProvider, VideoService videoService, SkinService skinService) : ControllerBase
+    public class RenderController(RenderService renderService, ILogger<RenderController> logger) : ControllerBase
     {
-        private static readonly TimeSpan RendererQueueFreshnessWindow = TimeSpan.FromSeconds(10);
-
         private int GetClientId() => int.Parse(User.Claims.First(m => m.Type == "client-id").Value);
-
-        private async Task<Renderer?> GetRendererAsync(int clientId)
-            => await rendererContext.Renderers.FirstOrDefaultAsync(m => m.RendererId == clientId);
-
-        private async Task<Renderer?> GetOnlineRendererAsync(int clientId)
-            => await rendererContext.Renderers.FirstOrDefaultAsync(m => m.RendererId == clientId && m.IsOnline);
 
         private ObjectResult RendererHeartbeatRequired()
             => BadRequest(new { message = "You should send a heartbeat" });
 
-        private void ClearRendererCurrentJob(Renderer renderer)
-        {
-            renderer.IsRendering = false;
-            renderer.CurrentJobId = -1;
-        }
+        private IActionResult FromMutationResult(RenderJobMutationResult result, bool forbidOnMissingAssignment = false)
+            => result.Status switch
+            {
+                RenderJobMutationStatus.Success => Ok(),
+                RenderJobMutationStatus.RendererOffline => RendererHeartbeatRequired(),
+                RenderJobMutationStatus.JobNotFound => NotFound(),
+                RenderJobMutationStatus.Forbidden => Forbid(),
+                RenderJobMutationStatus.RendererJobMismatch when forbidOnMissingAssignment => Forbid(),
+                RenderJobMutationStatus.RendererJobMismatch => Conflict(new { message = "This renderer is not assigned to the specified active job." }),
+                _ => StatusCode(500)
+            };
 
         [Authorize(Roles = "sosubot-renderer")]
         [HttpPost("heartbeat")]
-        public async Task<IActionResult> Heartbeat()
+        public async Task<IActionResult> Heartbeat(CancellationToken cancellationToken)
         {
             Console.WriteLine(string.Join(";", User.Claims.Select(m => m.ToString())) + "\n");
 
-            var clientId = GetClientId();
-            var renderer = await GetRendererAsync(clientId);
-            if (renderer == null)
+            var ok = await renderService.HeartbeatAsync(GetClientId(), cancellationToken);
+            if (!ok)
             {
-                logger.LogWarning("Heartbeat error, clientId: {ClientId}", clientId);
                 return StatusCode(500);
             }
 
-            renderer.LastSeen = DateTime.UtcNow;
-            renderer.IsOnline = true;
-
-            await rendererContext.SaveChangesAsync();
-            logger.LogInformation("Heartbeat received from renderer {RendererId}", clientId);
             return Ok();
         }
 
         [Authorize(Roles = "sosubot-renderer")]
         [HttpPost("report-rendering-progress")]
-        public async Task<IActionResult> ReportRenderingProgress([FromQuery(Name = "job-id")] int jobId, [FromQuery] double progress)
+        public async Task<IActionResult> ReportRenderingProgress([FromQuery(Name = "job-id")] int jobId, [FromQuery] double progress, CancellationToken cancellationToken)
         {
             if (progress > 1)
             {
-                return BadRequest(new
-                {
-                    message = "0 <= progress <= 1 or progress is {-2, -1}"
-                });
+                return BadRequest(new { message = "0 <= progress <= 1 or progress is {-2, -1}" });
             }
 
-            var clientId = GetClientId();
-            var renderer = await GetOnlineRendererAsync(clientId);
-            if (renderer == null)
-            {
-                return RendererHeartbeatRequired();
-            }
-
-            var renderJob = await rendererContext.RenderJobs.FirstOrDefaultAsync(r =>
-                r.JobId == jobId
-                && r.RenderingBy == renderer.RendererId
-                && r.IsComplete == false);
-            if (renderJob == null)
-            {
-                return NotFound();
-            }
-
-            if (!renderer.IsRendering || renderer.CurrentJobId != jobId)
-            {
-                return Conflict(new { message = "This renderer is not assigned to the specified active job." });
-            }
-
-            logger.LogInformation("JobId: {JobId}, progress: {Progress}", renderJob.JobId, progress);
-            renderJob.ProgressPercent = progress;
-            renderJob.RenderingLastUpdate = DateTime.UtcNow;
-
-            await rendererContext.SaveChangesAsync();
-            return Ok();
+            var result = await renderService.ReportRenderingProgressAsync(GetClientId(), jobId, progress, cancellationToken);
+            return FromMutationResult(result);
         }
 
         [Authorize(Roles = "sosubot-renderer")]
         [HttpPost("set-renderjob-metadata")]
-        public async Task<IActionResult> SetRenderJobMetadata([FromQuery(Name = "job-id")] int jobId)
+        public async Task<IActionResult> SetRenderJobMetadata([FromQuery(Name = "job-id")] int jobId, CancellationToken cancellationToken)
         {
-            var clientId = GetClientId();
-            var renderer = await GetOnlineRendererAsync(clientId);
-            if (renderer == null)
-            {
-                return RendererHeartbeatRequired();
-            }
+            logger.LogInformation("JobId: {JobId}. Setting metadata", jobId);
+            var result = await renderService.SetRenderJobMetadataAsync(
+                GetClientId(),
+                jobId,
+                Request.Headers["PlayerName"].ToString(),
+                Request.Headers["MapName"].ToString(),
+                cancellationToken);
 
-            var renderJob = await rendererContext.RenderJobs.FirstOrDefaultAsync(r =>
-                r.JobId == jobId
-                && r.RenderingBy == renderer.RendererId
-                && r.IsComplete == false);
-            if (renderJob == null)
-            {
-                return NotFound();
-            }
-
-            if (!renderer.IsRendering || renderer.CurrentJobId != jobId)
-            {
-                return Conflict(new { message = "This renderer is not assigned to the specified active job." });
-            }
-
-            logger.LogInformation("JobId: {JobId}. Setting metadata", renderJob.JobId);
-            renderJob.RenderingLastUpdate = DateTime.UtcNow;
-            var playerName = Request.Headers["PlayerName"].ToString();
-            var mapName = Request.Headers["MapName"].ToString();
-            renderJob.PlayerName = string.IsNullOrWhiteSpace(playerName) ? renderJob.PlayerName : playerName;
-            renderJob.MapName = string.IsNullOrWhiteSpace(mapName) ? renderJob.MapName : mapName;
-            logger.LogInformation("JobId: {JobId}. Metadata: player name = {PlayerName}, map name = {MapName}", renderJob.JobId, renderJob.PlayerName, renderJob.MapName);
-
-            await rendererContext.SaveChangesAsync();
-            return Ok();
+            return FromMutationResult(result);
         }
 
         [Authorize(Roles = "sosubot-renderer")]
         [HttpPost("finish-rendering")]
-        public async Task<IActionResult> FinishRendering([FromQuery(Name = "job-id")] int jobId)
+        public async Task<IActionResult> FinishRendering([FromQuery(Name = "job-id")] int jobId, CancellationToken cancellationToken)
         {
-            var clientId = GetClientId();
-            var renderer = await GetOnlineRendererAsync(clientId);
-            if (renderer == null)
-            {
-                return RendererHeartbeatRequired();
-            }
-
-            var renderJob = await rendererContext.RenderJobs.FirstOrDefaultAsync(r =>
-                r.JobId == jobId
-                && r.RenderingBy == renderer.RendererId
-                && r.IsComplete == false);
-            if (renderJob == null)
-            {
-                return NotFound();
-            }
-
-            if (!renderer.IsRendering || renderer.CurrentJobId != jobId)
-            {
-                return Conflict(new { message = "This renderer is not assigned to the specified active job." });
-            }
-
-            logger.LogInformation("JobId: {JobId}. Completed", renderJob.JobId);
-            renderJob.RenderingLastUpdate = DateTime.UtcNow;
-            renderJob.IsComplete = true;
-            renderJob.IsSuccess = true;
-            ClearRendererCurrentJob(renderer);
-
-            await rendererContext.SaveChangesAsync();
-            return Ok();
+            var result = await renderService.FinishRenderingAsync(GetClientId(), jobId, cancellationToken);
+            return FromMutationResult(result);
         }
 
         [Authorize(Roles = "sosubot")]
         [HttpPost("cancel")]
-        public async Task<IActionResult> CancelRender([FromQuery(Name = "job-id")] int jobId)
+        public async Task<IActionResult> CancelRender([FromQuery(Name = "job-id")] int jobId, CancellationToken cancellationToken)
         {
-            var renderJob = await rendererContext.RenderJobs.FirstOrDefaultAsync(r =>
-                r.JobId == jobId
-                && r.IsComplete == false);
-            if (renderJob == null)
-            {
-                return NotFound();
-            }
-
-            logger.LogInformation("JobId: {JobId}. Cancelled", renderJob.JobId);
-            renderJob.RenderingLastUpdate = DateTime.UtcNow;
-            renderJob.IsComplete = true;
-            renderJob.IsSuccess = false;
-            renderJob.FailureReason = "Cancelled";
-
-            if (renderJob.RenderingBy != -1)
-            {
-                var renderer = await GetRendererAsync(renderJob.RenderingBy);
-                if (renderer != null)
-                {
-                    ClearRendererCurrentJob(renderer);
-                }
-            }
-
-            await rendererContext.SaveChangesAsync();
-            return Ok();
+            var ok = await renderService.CancelRenderAsync(jobId, cancellationToken);
+            return ok ? Ok() : NotFound();
         }
 
         [Authorize(Roles = "sosubot-renderer")]
         [HttpPost("get-next-render-job")]
-        public async Task<IActionResult> GetNextRenderJob()
+        public async Task<IActionResult> GetNextRenderJob(CancellationToken cancellationToken)
         {
-            var clientId = GetClientId();
-
-            await using (await synchronizationProvider.AcquireLockAsync("render-job-lock"))
+            var result = await renderService.GetNextRenderJobAsync(GetClientId(), cancellationToken);
+            return result.Status switch
             {
-                var renderer = await GetOnlineRendererAsync(clientId);
-                if (renderer == null)
+                RenderJobAssignmentStatus.Assigned => Ok(result.Job),
+                RenderJobAssignmentStatus.RendererOffline => RendererHeartbeatRequired(),
+                RenderJobAssignmentStatus.RendererBusy => Conflict(new { message = "Renderer is already assigned an active render job.", jobId = result.CurrentJobId }),
+                RenderJobAssignmentStatus.NoQueuedJobs => NotFound(),
+                RenderJobAssignmentStatus.HigherPriorityRendererAvailable => Conflict(new
                 {
-                    return RendererHeartbeatRequired();
-                }
-
-                if (renderer.IsRendering && renderer.CurrentJobId != -1)
-                {
-                    return Conflict(new { message = "Renderer is already assigned an active render job.", jobId = renderer.CurrentJobId });
-                }
-
-                var freeJob = await rendererContext.RenderJobs
-                    .OrderBy(m => m.JobId)
-                    .FirstOrDefaultAsync(m => !m.IsComplete && m.RenderingBy == -1);
-                if (freeJob == null)
-                {
-                    return NotFound();
-                }
-
-                var now = DateTime.UtcNow;
-                var priorityRenderers = await rendererContext.Renderers
-                    .Where(r => r.IsOnline && !r.IsRendering && r.LastSeen >= now - RendererQueueFreshnessWindow)
-                    .OrderByDescending(r => r.PerformancePoints)
-                    .ThenByDescending(r => r.LastSeen)
-                    .ThenBy(r => r.RendererId)
-                    .Select(r => new { r.RendererId, r.PerformancePoints })
-                    .ToListAsync();
-
-                if (priorityRenderers.Count > 0 && priorityRenderers[0].RendererId != renderer.RendererId)
-                {
-                    return Conflict(new
-                    {
-                        message = "Another actively available renderer currently has higher priority for the next queued render job.",
-                        nextRendererId = priorityRenderers[0].RendererId,
-                        nextRendererPerformancePoints = priorityRenderers[0].PerformancePoints
-                    });
-                }
-
-                logger.LogInformation("Assigning JobId: {JobId} to RendererId: {RendererId} (PerformancePoints: {PerformancePoints})", freeJob.JobId, renderer.RendererId, renderer.PerformancePoints);
-                freeJob.RenderingBy = renderer.RendererId;
-                freeJob.RenderingStartedAt = now;
-                freeJob.RenderingLastUpdate = now;
-                renderer.IsRendering = true;
-                renderer.CurrentJobId = freeJob.JobId;
-
-                await rendererContext.SaveChangesAsync();
-                return Ok(freeJob);
-            }
+                    message = "Another actively available renderer currently has higher priority for the next queued render job.",
+                    nextRendererId = result.HigherPriorityRendererId,
+                    nextRendererPerformancePoints = result.HigherPriorityRendererPerformancePoints
+                }),
+                _ => StatusCode(500)
+            };
         }
 
         [Authorize(Roles = "sosubot-renderer")]
         [HttpPost("download-replay")]
-        public async Task<IActionResult> DownloadReplay([FromQuery(Name = "job-id")] int jobId)
+        public async Task<IActionResult> DownloadReplay([FromQuery(Name = "job-id")] int jobId, CancellationToken cancellationToken)
         {
-            var clientId = GetClientId();
-            var renderer = await GetOnlineRendererAsync(clientId);
+            var renderer = await renderService.GetOnlineRendererAsync(GetClientId(), cancellationToken);
             if (renderer == null)
             {
                 return RendererHeartbeatRequired();
             }
 
-            var renderJob = await rendererContext.RenderJobs.FirstOrDefaultAsync(r => r.JobId == jobId);
+            var renderJob = await renderService.GetRenderJobInfoAsync(jobId, cancellationToken);
             if (renderJob == null)
             {
                 return NotFound();
             }
+
             logger.LogInformation("JobId: {JobId}. Replay downloaded", renderJob.JobId);
             return PhysicalFile(renderJob.ReplayPath, "application/octet-stream", $"replay_{jobId}.osr");
         }
 
         [Authorize(Roles = "sosubot-renderer")]
         [HttpPost("failure")]
-        public async Task<IActionResult> Failure([FromQuery(Name = "job-id")] int jobId, [FromQuery(Name = "reason")] string failureReason, [FromQuery] bool rerender = true)
+        public async Task<IActionResult> Failure([FromQuery(Name = "job-id")] int jobId, [FromQuery(Name = "reason")] string failureReason, [FromQuery] bool rerender = true, CancellationToken cancellationToken = default)
         {
-            var clientId = GetClientId();
-            var renderer = await GetOnlineRendererAsync(clientId);
-            if (renderer == null)
-            {
-                return RendererHeartbeatRequired();
-            }
-
-            var renderJob = await rendererContext.RenderJobs.FirstOrDefaultAsync(r =>
-                r.JobId == jobId
-                && r.IsComplete == false
-                && r.RenderingBy == renderer.RendererId);
-            if (renderJob == null)
-            {
-                return Forbid();
-            }
-
-            if (!renderer.IsRendering || renderer.CurrentJobId != jobId)
-            {
-                return Conflict(new { message = "This renderer is not assigned to the specified active job." });
-            }
-
-            renderJob.IsSuccess = false;
-            renderJob.FailureReason = failureReason;
-            renderJob.IsComplete = !rerender;
-            renderJob.RenderingBy = rerender ? -1 : renderJob.RenderingBy;
-            renderJob.RenderingStartedAt = default;
-            renderJob.RenderingLastUpdate = default;
-            renderJob.ProgressPercent = 0;
-            ClearRendererCurrentJob(renderer);
-            await rendererContext.SaveChangesAsync();
-            logger.LogInformation("JobId: {JobId}. Failed: {FailureReason}", renderJob.JobId, failureReason);
-            return Ok();
+            var result = await renderService.FailRenderAsync(GetClientId(), jobId, failureReason, rerender, cancellationToken);
+            return FromMutationResult(result, forbidOnMissingAssignment: true);
         }
 
         [Authorize(Roles = "sosubot")]
         [HttpPost("queue-replay")]
         [Consumes("multipart/form-data")]
-        [RequestSizeLimit(67108864)] // 64 MB
-        [RequestFormLimits(MultipartBodyLengthLimit = 67108864)] // 64 MB
+        [RequestSizeLimit(67108864)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 67108864)]
         public async Task<IActionResult> QueueReplay(
             [FromForm(Name = "file")] IFormFile file,
             [FromForm(Name = "config")] string configAsStringJson,
-            [FromHeader(Name = "Requested-By")] string requestedBy)
+            [FromHeader(Name = "Requested-By")] string requestedBy,
+            CancellationToken cancellationToken)
         {
             if (file == null || file.Length == 0)
             {
@@ -336,62 +156,39 @@ namespace SosuWeb.Render.Controllers
                 return BadRequest("Invalid replay file type.");
             }
 
-            var config = JsonSerializer.Deserialize<RenderSettings>(configAsStringJson)!;
-
-            if (config.SkinName != "default")
+            try
             {
-                if (!Path.GetExtension(config.SkinName)!.Equals(".osk", StringComparison.OrdinalIgnoreCase))
+                var result = await renderService.QueueReplayAsync(file, configAsStringJson, requestedBy, cancellationToken);
+                if (result == null)
                 {
-                    logger.LogWarning("Invalid skin file type.");
-                    return BadRequest("Invalid skin file type.");
+                    return BadRequest("Invalid render config.");
                 }
 
-                string skinsDirectoryPath = SkinsController.SkinsDir;
-                string skinFileNameHex = skinService.SkinFileNameToHex(config.SkinName);
-                string skinPath = Path.Combine(skinsDirectoryPath, skinFileNameHex);
-                if (!System.IO.File.Exists(skinPath))
-                {
-                    logger.LogWarning("You should firstly upload this skin");
-                    return BadRequest("You should firstly upload this skin");
-                }
+                return Accepted(new { jobId = result.JobId, status = result.Status });
             }
-
-            var datetimeUtcNow = DateTime.UtcNow;
-            var replayFileName = $"{datetimeUtcNow.ToFileTimeUtc()}.osr";
-            var replayDirectoryPath = Path.Combine(AppContext.BaseDirectory, "replays")!;
-            var storagePath = Path.Combine(replayDirectoryPath, replayFileName);
-            Directory.CreateDirectory(replayDirectoryPath);
-            using var stream = new FileStream(storagePath, FileMode.CreateNew);
-            await file.CopyToAsync(stream);
-
-            RenderJob renderJob = new RenderJob
+            catch (InvalidOperationException ex) when (ex.Message == "Invalid skin file type.")
             {
-                ReplayPath = storagePath,
-                RequestedAt = datetimeUtcNow,
-                RequestedBy = requestedBy,
-                RenderSettings = config
-            };
-            await rendererContext.RenderJobs.AddAsync(renderJob);
-            await rendererContext.SaveChangesAsync();
-
-            logger.LogInformation("New render job queued. JobId: {JobId}, RequestedBy: {RequestedBy}", renderJob.JobId, requestedBy);
-            return Accepted(new
+                logger.LogWarning("Invalid skin file type.");
+                return BadRequest("Invalid skin file type.");
+            }
+            catch (FileNotFoundException)
             {
-                jobId = renderJob.JobId,
-                status = "queued"
-            });
+                logger.LogWarning("You should firstly upload this skin");
+                return BadRequest("You should firstly upload this skin");
+            }
         }
 
         [Authorize(Roles = "sosubot-renderer")]
         [HttpPost("upload-replay-videofile")]
         [Consumes("multipart/form-data")]
-        [RequestSizeLimit(99614720)] // 95 MB
-        [RequestFormLimits(MultipartBodyLengthLimit = 99614720)] // 95 MB
+        [RequestSizeLimit(99614720)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 99614720)]
         public async Task<IActionResult> UploadReplayVideofile(
             [FromForm] IFormFile file,
             [FromQuery(Name = "job-id")] int jobId,
             [FromQuery(Name = "chunk-index")] int chunkIndex,
-            [FromQuery(Name = "total-chunks")] int totalChunks)
+            [FromQuery(Name = "total-chunks")] int totalChunks,
+            CancellationToken cancellationToken)
         {
             if (file == null || file.Length == 0)
             {
@@ -408,96 +205,36 @@ namespace SosuWeb.Render.Controllers
                 return BadRequest("Invalid chunk index");
             }
 
-            var clientId = GetClientId();
-            var renderer = await GetOnlineRendererAsync(clientId);
-            if (renderer == null)
-            {
-                return RendererHeartbeatRequired();
-            }
-
-            var renderJob = await rendererContext.RenderJobs.FirstOrDefaultAsync(r => r.JobId == jobId);
-            if (renderJob == null)
+            var result = await renderService.UploadReplayVideofileAsync(Request, GetClientId(), file, jobId, chunkIndex, totalChunks, cancellationToken);
+            if (result.IsNotFound)
             {
                 return NotFound();
             }
 
-            string chunkFileNameFormat = "{0}_part{1}.mp4";
-            Directory.CreateDirectory(VideosController.VideosDir);
-            string chunkPath = Path.Combine(VideosController.VideosDir, string.Format(chunkFileNameFormat, jobId, chunkIndex));
-            await using (var fs = new FileStream(chunkPath, FileMode.Create))
+            if (!result.Success)
             {
-                await file.CopyToAsync(fs);
+                return BadRequest(new { message = result.ErrorMessage });
             }
-            logger.LogInformation("JobId: {JobId}. Got chunk {ChunkNumber}/{TotalChunks}", renderJob.JobId, chunkIndex + 1, totalChunks);
 
-            if (chunkIndex + 1 == totalChunks)
-            {
-                // Reassemble
-                var replayVideoFileName = videoService.GetReplayVideoFileName(renderJob.JobId, renderJob.RequestedAt);
-                string finalFile = Path.Combine(VideosController.VideosDir, replayVideoFileName);
-                using var output = new FileStream(finalFile, FileMode.Create);
-                for (int i = 0; i < totalChunks; i++)
-                {
-                    string partPath = Path.Combine(VideosController.VideosDir, string.Format(chunkFileNameFormat, jobId, i));
-                    await using (var partStream = new FileStream(partPath, FileMode.Open))
-                    {
-                        await partStream.CopyToAsync(output);
-                    }
-                    System.IO.File.Delete(partPath);
-                }
-
-                renderer.BytesRendered += output.Length;
-                renderJob.VideoLocalPath = Path.GetFullPath(finalFile);
-                renderJob.VideoUri = $"{Request.Scheme}://{Request.Host.ToString().Replace("localhost", "127.0.0.1")}{Request.PathBase}/videos/{replayVideoFileName}";
-                await rendererContext.SaveChangesAsync();
-            }
             return Ok();
         }
 
         [HttpGet("get-online-renderers")]
-        public async Task<IActionResult> GetOnlineRenderers()
-        {
-            var onlineRenderers = await rendererContext.Renderers
-                .Where(r => r.IsOnline)
-                .Select(r => new
-                {
-                    r.RendererId,
-                    r.LastSeen,
-                    r.RendererName,
-                    r.UsedGPU,
-                    r.IsRendering,
-                    r.CurrentJobId,
-                    r.PerformancePoints
-                })
-                .ToListAsync();
-            return Ok(onlineRenderers);
-        }
+        public async Task<IActionResult> GetOnlineRenderers(CancellationToken cancellationToken)
+            => Ok(await renderService.GetOnlineRenderersAsync(cancellationToken));
 
         [HttpGet("get-waitqueue-length")]
-        public async Task<IActionResult> GetWaitqueueLength([FromQuery(Name = "job-id")] int jobId)
+        public async Task<IActionResult> GetWaitqueueLength([FromQuery(Name = "job-id")] int jobId, CancellationToken cancellationToken)
         {
-            var renderJob = await rendererContext.RenderJobs.FirstOrDefaultAsync(r => r.JobId == jobId);
-            if (renderJob == null)
-            {
-                return NotFound();
-            }
-
-            int maxRenderJobId = rendererContext.RenderJobs.OrderByDescending(r => r.JobId).First(r => r.RenderingBy != -1).JobId;
-            int waitJobs = Math.Max(1, jobId - maxRenderJobId) - 1;
-            logger.LogInformation("MaxRenderJobId: {MaxRenderJobId}, waitJobs: {WaitJobs}, givenJobId: {JobId}", maxRenderJobId, waitJobs, jobId);
-
-            return Ok(waitJobs);
+            var waitJobs = await renderService.GetWaitqueueLengthAsync(jobId, cancellationToken);
+            return waitJobs.HasValue ? Ok(waitJobs.Value) : NotFound();
         }
 
         [HttpPost("get-render-job-info")]
-        public async Task<IActionResult> GetRenderJobInfo([FromQuery(Name = "job-id")] int jobId)
+        public async Task<IActionResult> GetRenderJobInfo([FromQuery(Name = "job-id")] int jobId, CancellationToken cancellationToken)
         {
-            var renderJob = await rendererContext.RenderJobs.FirstOrDefaultAsync(r => r.JobId == jobId);
-            if (renderJob == null)
-            {
-                return NotFound();
-            }
-            return Ok(renderJob);
+            var renderJob = await renderService.GetRenderJobInfoAsync(jobId, cancellationToken);
+            return renderJob == null ? NotFound() : Ok(renderJob);
         }
     }
 }
