@@ -85,7 +85,7 @@ public class RenderService(
         return assignment;
     }
 
-    public async Task<RenderJobMutationResult> SetRenderJobMetadataAsync(int clientId, int jobId, string? playerName, string? mapName, CancellationToken cancellationToken = default)
+    public async Task<RenderJobMutationResult> SetRenderJobMetadataAsync(int clientId, int jobId, string? playerName, string? mapName, int duration, CancellationToken cancellationToken = default)
     {
         var assignment = await GetAssignedJobAsync(clientId, jobId, cancellationToken);
         if (assignment.Status != RenderJobMutationStatus.Success)
@@ -96,6 +96,7 @@ public class RenderService(
         assignment.Job!.RenderingLastUpdate = DateTime.UtcNow;
         assignment.Job.PlayerName = string.IsNullOrWhiteSpace(playerName) ? assignment.Job.PlayerName : playerName;
         assignment.Job.MapName = string.IsNullOrWhiteSpace(mapName) ? assignment.Job.MapName : mapName;
+        assignment.Job.VideoDuration = duration;
         await db.SaveChangesAsync(cancellationToken);
         logger.LogInformation("JobId: {JobId}. Metadata: player name = {PlayerName}, map name = {MapName}", assignment.Job.JobId, assignment.Job.PlayerName, assignment.Job.MapName);
         return assignment;

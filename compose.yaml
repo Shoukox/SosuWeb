@@ -24,10 +24,10 @@
       dockerfile: ./SosuWeb.Render/Dockerfile
     restart: always
     volumes:
-     - /skins:/app/skins
-     - /videos:/app/videos
-     - /thumbnails:/app/thumbnails  
-     - ./SosuWeb.Render/replays:/app/replays
+     - /skins:/app/skins:rw
+     - /videos:/app/videos:rw
+     - /thumbnails:/app/thumbnails:rw
+     - ./SosuWeb.Render/replays:/app/replays:rw
     depends_on:
       db-service:
         condition: service_healthy

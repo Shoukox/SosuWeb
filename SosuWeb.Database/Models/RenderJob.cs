@@ -15,6 +15,7 @@ public record RenderJob
     public string MapName { get; set; } = "Unknown";
     public string VideoThumbnailUri { get; set; } = "";
     public string VideoThumbnailLocalPath { get; set; } = "";
+    public int VideoDuration { get; set; } = 0;
     public string ReplayPath { get; set; } = "";
     public DateTime RequestedAt { get; set; }
     public string RequestedBy { get; set; } = null!;

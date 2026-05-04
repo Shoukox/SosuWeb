@@ -63,6 +63,7 @@ namespace SosuWeb.Render.Controllers
                 jobId,
                 Request.Headers["PlayerName"].ToString(),
                 Request.Headers["MapName"].ToString(),
+                int.Parse(Request.Headers["Duration"].ToString()),
                 cancellationToken);
 
             return FromMutationResult(result);
