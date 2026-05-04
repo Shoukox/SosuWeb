@@ -322,8 +322,10 @@ public class RenderService(
             for (int i = 0; i < totalChunks; i++)
             {
                 var partPath = Path.Combine(VideosController.VideosDir, string.Format(chunkFileNameFormat, jobId, i));
-                await using var partStream = new FileStream(partPath, FileMode.Open);
-                await partStream.CopyToAsync(output, cancellationToken);
+                await using (var partStream = new FileStream(partPath, FileMode.Open))
+                {
+                    await partStream.CopyToAsync(output, cancellationToken);
+                }
                 File.Delete(partPath);
             }
 

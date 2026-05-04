@@ -71,7 +71,7 @@ builder.Services.AddAuthorization();
 
 // Database
 var connectionString = builder.Configuration.GetConnectionString("Postgres")!;
-Console.WriteLine($"Using the following connection string: {connectionString}");
+Console.WriteLine($"Using the following connection string: {connectionString.Substring(0, connectionString.IndexOf("Password") + 9)}********");
 builder.Services.AddDbContextPool<DatabaseContext>(options => options.UseNpgsql(connectionString)
         .ConfigureWarnings(m => m.Ignore(RelationalEventId.PendingModelChangesWarning)));
 builder.Services.AddSingleton<IDistributedLockProvider>(_ => new PostgresDistributedSynchronizationProvider(connectionString));

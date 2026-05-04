@@ -8,7 +8,7 @@ namespace SosuWeb.Render.Services
     {
         public string GetThumbnailFileName(int jobId, DateTime requestedAt)
         {
-            return Base64Url.EncodeToString(Encoding.ASCII.GetBytes($"{jobId}_{requestedAt.ToFileTimeUtc()}")) + ".png";
+            return Base64Url.EncodeToString(Encoding.ASCII.GetBytes($"{jobId}_{requestedAt.ToFileTimeUtc()}")) + ".jpg";
         }
     }
 }

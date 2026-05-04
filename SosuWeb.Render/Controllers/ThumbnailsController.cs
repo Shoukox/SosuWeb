@@ -12,6 +12,8 @@ namespace SosuWeb.Render.Controllers
     public sealed class ThumbnailsController(DatabaseContext databaseContext, ILogger<VideosController> logger, ThumbnailService thumbnailService) : ControllerBase
     {
         public static string ThumbnailsDir = Path.Combine(AppContext.BaseDirectory, "thumbnails");
+        public const string ThumbnailFileType = "jpg";
+        public static readonly string ThumbnailFileTypeExtension = '.' + ThumbnailFileType;
 
         [Authorize(Roles = "sosubot-renderer")]
         [HttpPost("upload")]
@@ -27,7 +29,7 @@ namespace SosuWeb.Render.Controllers
                 return BadRequest("There is no thumbnail.");
             }
 
-            if (!Path.GetExtension(file.FileName).Equals(".png", StringComparison.OrdinalIgnoreCase))
+            if (!Path.GetExtension(file.FileName).Equals(ThumbnailFileTypeExtension, StringComparison.OrdinalIgnoreCase))
             {
                 return BadRequest("Invalid thumbnail file type.");
             }
@@ -74,7 +76,7 @@ namespace SosuWeb.Render.Controllers
             if (!System.IO.File.Exists(fullPath))
                 return NotFound();
 
-            if (Path.GetExtension(fileName) != ".png")
+            if (Path.GetExtension(fileName) != ThumbnailFileTypeExtension)
                 return NotFound();
 
             var filenameWithoutExt = Path.GetFileNameWithoutExtension(fileName);
@@ -108,7 +110,7 @@ namespace SosuWeb.Render.Controllers
 
             return File(
                 stream,
-                "image/png",
+                "image/jpeg",
                 enableRangeProcessing: true
             );
         }
