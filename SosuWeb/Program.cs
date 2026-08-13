@@ -10,6 +10,7 @@ using SosuWeb.Components;
 using SosuWeb.Components.Account;
 using SosuWeb.Database;
 using SosuWeb.Database.Models;
+using Npgsql;
 
 namespace SosuWeb
 {
@@ -41,7 +42,19 @@ namespace SosuWeb
                 })
                 .AddIdentityCookies();
 
-            var connectionString = builder.Configuration.GetConnectionString("Postgres") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+            string configuredConnectionString = builder.Configuration.GetConnectionString("Postgres")
+                ?? throw new InvalidOperationException("Connection string 'Postgres' is not configured.");
+            var connectionStringBuilder = new NpgsqlConnectionStringBuilder(configuredConnectionString);
+            string? databasePasswordFile = builder.Configuration["Database:PasswordFile"];
+            if (!string.IsNullOrWhiteSpace(databasePasswordFile))
+            {
+                if (!File.Exists(databasePasswordFile))
+                    throw new FileNotFoundException("PostgreSQL password file was not found.", databasePasswordFile);
+
+                connectionStringBuilder.Password = File.ReadAllText(databasePasswordFile).Trim();
+            }
+
+            string connectionString = connectionStringBuilder.ConnectionString;
             builder.Services.AddDbContext<DatabaseContext>(options =>
                 options.UseNpgsql(connectionString)
                 .ConfigureWarnings(m => m.Ignore(RelationalEventId.PendingModelChangesWarning)));
@@ -66,10 +79,19 @@ namespace SosuWeb
 
             var app = builder.Build();
 
-            using (var scope = app.Services.CreateScope())
+            bool migrateOnly = builder.Configuration.GetValue("Database:MigrateOnly", false);
+            bool migrateOnStartup = builder.Configuration.GetValue("Database:MigrateOnStartup", true);
+            if (migrateOnly || migrateOnStartup)
             {
+                using var scope = app.Services.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
                 db.Database.Migrate();
+            }
+
+            if (migrateOnly)
+            {
+                Console.WriteLine("Database migrations completed; exiting migration-only mode.");
+                return;
             }
 
             // Configure the HTTP request pipeline.

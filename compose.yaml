@@ -28,28 +28,63 @@
      - /videos:/app/videos:rw
      - /thumbnails:/app/thumbnails:rw
      - ./SosuWeb.Render/replays:/app/replays:rw
-    depends_on:
-      db-service:
-        condition: service_healthy
     ports:
       - "5000:5000"
     environment:
       ASPNETCORE_HTTP_PORTS: 5000
+      ConnectionStrings__Postgres: "Host=db-service;Port=5432;Database=${POSTGRES_DB:-sosubot_renderer};Username=${POSTGRES_USER:-sosubot}"
+      Database__PasswordFile: /run/secrets/db-password
+      Database__MigrateOnStartup: "false"
+      # Set CLIENT_RENDERER_LATEST_VERSION together with each ClientRenderer release.
+      ClientRenderer__LatestVersion: "${CLIENT_RENDERER_LATEST_VERSION:-2.0.12}"
+    secrets:
+      - db-password
     networks:
       - custom
+    depends_on:
+      database-migrator:
+        condition: service_completed_successfully
+      db-service:
+        condition: service_healthy
 
   sosuweb-service:
     build:
       context: .
       dockerfile: ./SosuWeb/Dockerfile
     restart: always
-    depends_on:
-      - sosuweb-render-service
-      - db-service
     ports:
       - "5001:5001"
     environment:
       ASPNETCORE_HTTP_PORTS: 5001
+      ConnectionStrings__Postgres: "Host=db-service;Port=5432;Database=${POSTGRES_DB:-sosubot_renderer};Username=${POSTGRES_USER:-sosubot}"
+      Database__PasswordFile: /run/secrets/db-password
+      Database__MigrateOnStartup: "false"
+    secrets:
+      - db-password
+    networks:
+      - custom
+    depends_on:
+      database-migrator:
+        condition: service_completed_successfully
+      sosuweb-render-service:
+        condition: service_started
+      db-service:
+        condition: service_healthy
+
+  database-migrator:
+    build:
+      context: .
+      dockerfile: ./SosuWeb/Dockerfile
+    restart: "no"
+    environment:
+      ConnectionStrings__Postgres: "Host=db-service;Port=5432;Database=${POSTGRES_DB:-sosubot_renderer};Username=${POSTGRES_USER:-sosubot}"
+      Database__PasswordFile: /run/secrets/db-password
+      Database__MigrateOnly: "true"
+    secrets:
+      - db-password
+    depends_on:
+      db-service:
+        condition: service_healthy
     networks:
       - custom
 
@@ -61,13 +96,13 @@
     volumes:
       - ./db-data:/var/lib/postgresql/data
     environment:
-      POSTGRES_DB: sosubot_renderer
-      POSTGRES_USER: sosubot
+      POSTGRES_DB: "${POSTGRES_DB:-sosubot_renderer}"
+      POSTGRES_USER: "${POSTGRES_USER:-sosubot}"
       POSTGRES_PASSWORD_FILE: /run/secrets/db-password
     ports:
       - "5433:5432"
     healthcheck:
-      test: [ "CMD", "pg_isready", "-U", "sosubot", "-d", "sosubot_renderer" ]
+      test: [ "CMD-SHELL", "pg_isready -U '${POSTGRES_USER:-sosubot}' -d '${POSTGRES_DB:-sosubot_renderer}'" ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -81,6 +116,6 @@ secrets:
 
 networks:
     custom:
-      enable_ipv4: false
-      enable_ipv6: true
+      enable_ipv4: true
+      enable_ipv6: false
       driver: bridge

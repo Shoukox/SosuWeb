@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SosuWeb.Render.DTO;
 using SosuWeb.Render.Services;
 
 namespace SosuWeb.Render.Controllers
@@ -27,17 +28,19 @@ namespace SosuWeb.Render.Controllers
 
         [Authorize(Roles = "sosubot-renderer")]
         [HttpPost("heartbeat")]
-        public async Task<IActionResult> Heartbeat(CancellationToken cancellationToken)
+        public async Task<IActionResult> Heartbeat(
+            [FromHeader(Name = "X-Client-Renderer-Version")] string? clientVersion,
+            CancellationToken cancellationToken)
         {
             Console.WriteLine(string.Join(";", User.Claims.Select(m => m.ToString())) + "\n");
 
-            var ok = await renderService.HeartbeatAsync(GetClientId(), cancellationToken);
-            if (!ok)
+            var result = await renderService.HeartbeatAsync(GetClientId(), clientVersion, cancellationToken);
+            if (result is null)
             {
                 return StatusCode(500);
             }
 
-            return Ok();
+            return Ok(new RendererHeartbeatResponse(result.UpdateRequired, result.LatestVersion));
         }
 
         [Authorize(Roles = "sosubot-renderer")]

@@ -34,16 +34,16 @@ namespace SosuWeb.Render.Services
                 new RsaSecurityKey(_rsaPrivate),
                 SecurityAlgorithms.RsaSha256);
 
-            if(!int.TryParse(_conf["Jwt:ExpirationInMinutes"], out int expiration))
+            if(!int.TryParse(_conf["Jwt:ExpirationInSeconds"], out int expiration))
             {
-                _logger.LogWarning("Wrong value for Jwt:ExpirationInMinutes in appsettings.json");
-                expiration = 60;
+                _logger.LogWarning("Wrong value for Jwt:ExpirationInSeconds in appsettings.json");
+                expiration = 3600;
             }
             var token = new JwtSecurityToken(
                 issuer: _conf["Jwt:Issuer"],
                 audience: _conf["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(expiration),
+                expires: DateTime.UtcNow.AddSeconds(expiration),
                 signingCredentials: creds
             );
 

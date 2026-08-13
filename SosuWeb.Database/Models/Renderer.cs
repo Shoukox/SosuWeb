@@ -14,6 +14,16 @@ namespace SosuWeb.Database.Models
         public string RendererName { get; set; } = "undefined";
         public bool IsOnline { get; set; } = false;
         public DateTime LastSeen { get; set; } = DateTime.MinValue;
+        /// <summary>
+        /// The last ClientRenderer version received in a version heartbeat.
+        /// Null means that this renderer has not reported a version yet.
+        /// </summary>
+        public string? LastReportedClientRendererVersion { get; set; }
+
+        /// <summary>
+        /// UTC time when the last ClientRenderer version was received by the server.
+        /// </summary>
+        public DateTime? LastReportedClientRendererVersionAt { get; set; }
         public long BytesRendered { get; set; } = 0;
         public string UsedGPU { get; set; } = "undefined";
         public string UsedCPU { get; set; } = "undefined";

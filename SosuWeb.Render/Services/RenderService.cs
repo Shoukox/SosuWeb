@@ -1,5 +1,6 @@
 using Medallion.Threading;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using SosuWeb.Database;
 using SosuWeb.Database.Models;
 using SosuWeb.Render.Controllers;
@@ -34,6 +35,8 @@ public enum RenderJobMutationStatus
 
 public sealed record RenderJobMutationResult(RenderJobMutationStatus Status, RenderJob? Job = null);
 
+public sealed record RendererHeartbeatResult(bool UpdateRequired, string? LatestVersion);
+
 public sealed record QueueReplayResult(int JobId, string Status);
 
 public sealed record UploadReplayVideoResult(bool Success, string? ErrorMessage = null, bool IsNotFound = false);
@@ -43,9 +46,11 @@ public class RenderService(
     ILogger<RenderService> logger,
     IDistributedLockProvider synchronizationProvider,
     VideoService videoService,
-    SkinService skinService)
+    SkinService skinService,
+    IOptions<ClientRendererVersionOptions> clientRendererVersionOptions)
 {
     private static readonly TimeSpan RendererQueueFreshnessWindow = TimeSpan.FromSeconds(10);
+    private readonly ClientRendererVersionOptions _clientRendererVersionOptions = clientRendererVersionOptions.Value;
 
     public async Task<Renderer?> GetRendererAsync(int clientId, CancellationToken cancellationToken = default)
         => await db.Renderers.FirstOrDefaultAsync(m => m.RendererId == clientId, cancellationToken);
@@ -53,21 +58,49 @@ public class RenderService(
     public async Task<Renderer?> GetOnlineRendererAsync(int clientId, CancellationToken cancellationToken = default)
         => await db.Renderers.FirstOrDefaultAsync(m => m.RendererId == clientId && m.IsOnline, cancellationToken);
 
-    public async Task<bool> HeartbeatAsync(int clientId, CancellationToken cancellationToken = default)
+    public async Task<RendererHeartbeatResult?> HeartbeatAsync(
+        int clientId,
+        string? clientVersion,
+        CancellationToken cancellationToken = default)
     {
         var renderer = await GetRendererAsync(clientId, cancellationToken);
         if (renderer == null)
         {
             logger.LogWarning("Heartbeat error, clientId: {ClientId}", clientId);
-            return false;
+            return null;
         }
 
-        renderer.LastSeen = DateTime.UtcNow;
+        DateTime now = DateTime.UtcNow;
+        renderer.LastSeen = now;
         renderer.IsOnline = true;
+
+        // ClientRenderer reports its version only periodically. Do not clear
+        // the last known version when a regular liveness heartbeat arrives
+        // without the optional version header.
+        if (!string.IsNullOrWhiteSpace(clientVersion))
+        {
+            renderer.LastReportedClientRendererVersion = clientVersion.Trim();
+            renderer.LastReportedClientRendererVersionAt = now;
+        }
 
         await db.SaveChangesAsync(cancellationToken);
         logger.LogInformation("Heartbeat received from renderer {RendererId}", clientId);
-        return true;
+
+        bool updateRequired = ClientRendererVersionPolicy.IsUpdateRequired(
+            clientVersion,
+            _clientRendererVersionOptions.LatestVersion);
+        if (updateRequired)
+        {
+            logger.LogInformation(
+                "Renderer {RendererId} is running ClientRenderer {ClientVersion}; update to {LatestVersion} is required.",
+                clientId,
+                clientVersion,
+                _clientRendererVersionOptions.LatestVersion);
+        }
+
+        return new RendererHeartbeatResult(
+            updateRequired,
+            updateRequired ? _clientRendererVersionOptions.LatestVersion : null);
     }
 
     public async Task<RenderJobMutationResult> ReportRenderingProgressAsync(int clientId, int jobId, double progress, CancellationToken cancellationToken = default)

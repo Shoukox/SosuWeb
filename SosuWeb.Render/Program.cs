@@ -8,6 +8,7 @@ using Microsoft.IdentityModel.Tokens;
 using SosuWeb.Database;
 using SosuWeb.Render.Logging;
 using SosuWeb.Render.Services;
+using Npgsql;
 using System.Security.Cryptography;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +19,8 @@ builder.Services.AddSingleton<JwtTokenService>();
 builder.Services.AddSingleton<VideoService>();
 builder.Services.AddSingleton<SkinService>();
 builder.Services.AddSingleton<ThumbnailService>();
+builder.Services.Configure<ClientRendererVersionOptions>(
+    builder.Configuration.GetSection("ClientRenderer"));
 builder.Services.AddScoped<RenderService>();
 builder.Services.AddHostedService<RendererOfflineService>();
 builder.Services.AddHostedService<RendererStuckReplayResetService>();
@@ -70,18 +73,41 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 
 // Database
-var connectionString = builder.Configuration.GetConnectionString("Postgres")!;
-Console.WriteLine($"Using the following connection string: {connectionString.Substring(0, connectionString.IndexOf("Password") + 9)}********");
+string configuredConnectionString = builder.Configuration.GetConnectionString("Postgres")
+    ?? throw new InvalidOperationException("Connection string 'Postgres' is not configured.");
+var connectionStringBuilder = new NpgsqlConnectionStringBuilder(configuredConnectionString);
+string? databasePasswordFile = builder.Configuration["Database:PasswordFile"];
+if (!string.IsNullOrWhiteSpace(databasePasswordFile))
+{
+    if (!File.Exists(databasePasswordFile))
+        throw new FileNotFoundException("PostgreSQL password file was not found.", databasePasswordFile);
+
+    connectionStringBuilder.Password = File.ReadAllText(databasePasswordFile).Trim();
+}
+
+string connectionString = connectionStringBuilder.ConnectionString;
+Console.WriteLine(
+    $"Using PostgreSQL at {connectionStringBuilder.Host}:{connectionStringBuilder.Port}/" +
+    $"{connectionStringBuilder.Database} as {connectionStringBuilder.Username}");
 builder.Services.AddDbContextPool<DatabaseContext>(options => options.UseNpgsql(connectionString)
         .ConfigureWarnings(m => m.Ignore(RelationalEventId.PendingModelChangesWarning)));
 builder.Services.AddSingleton<IDistributedLockProvider>(_ => new PostgresDistributedSynchronizationProvider(connectionString));
 
 // Build the app
 var app = builder.Build();
-using (var scope = app.Services.CreateScope())
+bool migrateOnly = builder.Configuration.GetValue("Database:MigrateOnly", false);
+bool migrateOnStartup = builder.Configuration.GetValue("Database:MigrateOnStartup", true);
+if (migrateOnly || migrateOnStartup)
 {
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<DatabaseContext>();
     db.Database.Migrate();
+}
+
+if (migrateOnly)
+{
+    Console.WriteLine("Database migrations completed; exiting migration-only mode.");
+    return;
 }
 app.UseAuthentication();
 app.UseAuthorization();
