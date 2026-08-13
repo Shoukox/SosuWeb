@@ -140,18 +140,13 @@ namespace SosuWeb.Render.Controllers
         [RequestSizeLimit(67108864)]
         [RequestFormLimits(MultipartBodyLengthLimit = 67108864)]
         public async Task<IActionResult> QueueReplay(
-            [FromForm(Name = "file")] IFormFile file,
+            [FromForm(Name = "file")] IFormFile? file,
             [FromForm(Name = "config")] string configAsStringJson,
             [FromHeader(Name = "Requested-By")] string requestedBy,
             CancellationToken cancellationToken)
         {
-            if (file == null || file.Length == 0)
-            {
-                logger.LogWarning("No replay file uploaded");
-                return BadRequest("No replay file uploaded.");
-            }
-
-            if (!Path.GetExtension(file.FileName).Equals(".osr", StringComparison.OrdinalIgnoreCase))
+            if (file is not null && file.Length > 0 &&
+                !Path.GetExtension(file.FileName).Equals(".osr", StringComparison.OrdinalIgnoreCase))
             {
                 logger.LogWarning("Invalid replay file type.");
                 return BadRequest("Invalid replay file type.");

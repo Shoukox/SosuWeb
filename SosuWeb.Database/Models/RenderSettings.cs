@@ -32,5 +32,8 @@ namespace SosuWeb.Database.Models
         public bool UseExperimentalRenderer { get; set; } = false;
         public double ManiaScrollSpeed { get; set; } = 25.0;
         public bool ManiaScrollDirectionUp { get; set; } = false;
+        public bool UseAutoPlay { get; set; } = false;
+        public int? AutoBeatmapId { get; set; }
+        public string[] AutoMods { get; set; } = [];
     }
 }

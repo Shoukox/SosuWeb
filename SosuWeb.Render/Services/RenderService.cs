@@ -240,10 +240,20 @@ public class RenderService(
         return new(RenderJobMutationStatus.Success, renderJob);
     }
 
-    public async Task<QueueReplayResult?> QueueReplayAsync(IFormFile file, string configAsStringJson, string requestedBy, CancellationToken cancellationToken = default)
+    public async Task<QueueReplayResult?> QueueReplayAsync(IFormFile? file, string configAsStringJson, string requestedBy, CancellationToken cancellationToken = default)
     {
         var config = JsonSerializer.Deserialize<RenderSettings>(configAsStringJson);
         if (config == null)
+        {
+            return null;
+        }
+
+        if (!config.UseAutoPlay && (file is null || file.Length == 0))
+        {
+            return null;
+        }
+
+        if (config.UseAutoPlay && (!config.AutoBeatmapId.HasValue || config.AutoBeatmapId.Value <= 0))
         {
             return null;
         }
@@ -265,13 +275,15 @@ public class RenderService(
         }
 
         var datetimeUtcNow = DateTime.UtcNow;
-        var replayFileName = $"{datetimeUtcNow.ToFileTimeUtc()}.osr";
-        var replayDirectoryPath = Path.Combine(AppContext.BaseDirectory, "replays");
-        var storagePath = Path.Combine(replayDirectoryPath, replayFileName);
-        Directory.CreateDirectory(replayDirectoryPath);
-
-        await using (var stream = new FileStream(storagePath, FileMode.CreateNew))
+        string storagePath = string.Empty;
+        if (file is not null && file.Length > 0)
         {
+            var replayFileName = $"{datetimeUtcNow.ToFileTimeUtc()}.osr";
+            var replayDirectoryPath = Path.Combine(AppContext.BaseDirectory, "replays");
+            storagePath = Path.Combine(replayDirectoryPath, replayFileName);
+            Directory.CreateDirectory(replayDirectoryPath);
+
+            await using var stream = new FileStream(storagePath, FileMode.CreateNew);
             await file.CopyToAsync(stream, cancellationToken);
         }
 
