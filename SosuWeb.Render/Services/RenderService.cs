@@ -12,6 +12,7 @@ public enum RenderJobAssignmentStatus
 {
     Assigned,
     RendererOffline,
+    RendererVersionUnsupported,
     RendererBusy,
     NoQueuedJobs,
     HigherPriorityRendererAvailable,
@@ -35,7 +36,17 @@ public enum RenderJobMutationStatus
 
 public sealed record RenderJobMutationResult(RenderJobMutationStatus Status, RenderJob? Job = null);
 
-public sealed record RendererHeartbeatResult(bool UpdateRequired, string? LatestVersion);
+public enum RendererHeartbeatStatus
+{
+    Accepted,
+    RendererNotFound,
+    ClientVersionRequired,
+}
+
+public sealed record RendererHeartbeatResult(
+    RendererHeartbeatStatus Status,
+    bool UpdateRequired = false,
+    string? LatestVersion = null);
 
 public sealed record QueueReplayResult(int JobId, string Status);
 
@@ -58,7 +69,7 @@ public class RenderService(
     public async Task<Renderer?> GetOnlineRendererAsync(int clientId, CancellationToken cancellationToken = default)
         => await db.Renderers.FirstOrDefaultAsync(m => m.RendererId == clientId && m.IsOnline, cancellationToken);
 
-    public async Task<RendererHeartbeatResult?> HeartbeatAsync(
+    public async Task<RendererHeartbeatResult> HeartbeatAsync(
         int clientId,
         string? clientVersion,
         CancellationToken cancellationToken = default)
@@ -67,21 +78,23 @@ public class RenderService(
         if (renderer == null)
         {
             logger.LogWarning("Heartbeat error, clientId: {ClientId}", clientId);
-            return null;
+            return new(RendererHeartbeatStatus.RendererNotFound);
+        }
+
+        if (string.IsNullOrWhiteSpace(clientVersion))
+        {
+            logger.LogWarning(
+                "Heartbeat rejected for renderer {RendererId}: ClientRenderer version was not provided.",
+                clientId);
+            return new(RendererHeartbeatStatus.ClientVersionRequired);
         }
 
         DateTime now = DateTime.UtcNow;
         renderer.LastSeen = now;
         renderer.IsOnline = true;
 
-        // ClientRenderer reports its version only periodically. Do not clear
-        // the last known version when a regular liveness heartbeat arrives
-        // without the optional version header.
-        if (!string.IsNullOrWhiteSpace(clientVersion))
-        {
-            renderer.LastReportedClientRendererVersion = clientVersion.Trim();
-            renderer.LastReportedClientRendererVersionAt = now;
-        }
+        renderer.LastReportedClientRendererVersion = clientVersion.Trim();
+        renderer.LastReportedClientRendererVersionAt = now;
 
         await db.SaveChangesAsync(cancellationToken);
         logger.LogInformation("Heartbeat received from renderer {RendererId}", clientId);
@@ -99,6 +112,7 @@ public class RenderService(
         }
 
         return new RendererHeartbeatResult(
+            RendererHeartbeatStatus.Accepted,
             updateRequired,
             updateRequired ? _clientRendererVersionOptions.LatestVersion : null);
     }
@@ -196,6 +210,11 @@ public class RenderService(
             return new(RenderJobAssignmentStatus.RendererOffline);
         }
 
+        if (!IsRendererVersionSupported(renderer))
+        {
+            return new(RenderJobAssignmentStatus.RendererVersionUnsupported);
+        }
+
         if (renderer.IsRendering && renderer.CurrentJobId != -1)
         {
             return new(RenderJobAssignmentStatus.RendererBusy, CurrentJobId: renderer.CurrentJobId);
@@ -212,11 +231,17 @@ public class RenderService(
         var now = DateTime.UtcNow;
         var priorityRenderers = await db.Renderers
             .Where(r => r.IsOnline && !r.IsRendering && r.LastSeen >= now - RendererQueueFreshnessWindow)
+            .Select(r => new { r.RendererId, r.PerformancePoints, r.LastSeen, r.LastReportedClientRendererVersion })
+            .ToListAsync(cancellationToken);
+
+        priorityRenderers = priorityRenderers
+            .Where(r => ClientRendererVersionPolicy.IsVersionSupported(
+                r.LastReportedClientRendererVersion,
+                _clientRendererVersionOptions.LatestVersion))
             .OrderByDescending(r => r.PerformancePoints)
             .ThenByDescending(r => r.LastSeen)
             .ThenBy(r => r.RendererId)
-            .Select(r => new { r.RendererId, r.PerformancePoints })
-            .ToListAsync(cancellationToken);
+            .ToList();
 
         if (priorityRenderers.Count > 0 && priorityRenderers[0].RendererId != renderer.RendererId)
         {
@@ -385,8 +410,24 @@ public class RenderService(
     }
 
     public async Task<List<object>> GetOnlineRenderersAsync(CancellationToken cancellationToken = default)
-        => await db.Renderers
+    {
+        var onlineRenderers = await db.Renderers
             .Where(r => r.IsOnline)
+            .Select(r => new
+            {
+                r.RendererId,
+                r.LastSeen,
+                r.RendererName,
+                r.UsedGPU,
+                r.IsRendering,
+                r.CurrentJobId,
+                r.PerformancePoints,
+                r.LastReportedClientRendererVersion
+            })
+            .ToListAsync(cancellationToken);
+
+        return onlineRenderers
+            .Where(r => IsRendererVersionSupported(r.LastReportedClientRendererVersion))
             .Select(r => (object)new
             {
                 r.RendererId,
@@ -397,7 +438,8 @@ public class RenderService(
                 r.CurrentJobId,
                 r.PerformancePoints
             })
-            .ToListAsync(cancellationToken);
+            .ToList();
+    }
 
     public async Task<int?> GetWaitqueueLengthAsync(int jobId, CancellationToken cancellationToken = default)
     {
@@ -453,4 +495,12 @@ public class RenderService(
         renderer.IsRendering = false;
         renderer.CurrentJobId = -1;
     }
+
+    private bool IsRendererVersionSupported(Renderer renderer)
+        => IsRendererVersionSupported(renderer.LastReportedClientRendererVersion);
+
+    private bool IsRendererVersionSupported(string? clientVersion)
+        => ClientRendererVersionPolicy.IsVersionSupported(
+            clientVersion,
+            _clientRendererVersionOptions.LatestVersion);
 }

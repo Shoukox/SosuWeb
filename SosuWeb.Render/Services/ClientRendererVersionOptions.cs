@@ -26,6 +26,20 @@ public static class ClientRendererVersionPolicy
         return current.CompareTo(latest) < 0;
     }
 
+    public static bool IsVersionSupported(string? currentVersion, string? latestVersion)
+    {
+        if (!TryParseStableVersion(currentVersion, out Version current) ||
+            !TryParseStableVersion(latestVersion, out Version latest))
+        {
+            // A renderer with no recognizable version must never receive a
+            // new render job. This also fails closed when the server's
+            // required version is misconfigured.
+            return false;
+        }
+
+        return current.CompareTo(latest) >= 0;
+    }
+
     private static bool TryParseStableVersion(string? value, out Version version)
     {
         version = new Version(0, 0, 0, 0);

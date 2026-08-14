@@ -35,9 +35,17 @@ namespace SosuWeb.Render.Controllers
             Console.WriteLine(string.Join(";", User.Claims.Select(m => m.ToString())) + "\n");
 
             var result = await renderService.HeartbeatAsync(GetClientId(), clientVersion, cancellationToken);
-            if (result is null)
+            if (result.Status == RendererHeartbeatStatus.RendererNotFound)
             {
                 return StatusCode(500);
+            }
+
+            if (result.Status == RendererHeartbeatStatus.ClientVersionRequired)
+            {
+                return StatusCode(StatusCodes.Status426UpgradeRequired, new
+                {
+                    message = "ClientRenderer version is required. Please update the renderer."
+                });
             }
 
             return Ok(new RendererHeartbeatResponse(result.UpdateRequired, result.LatestVersion));
@@ -97,6 +105,10 @@ namespace SosuWeb.Render.Controllers
             {
                 RenderJobAssignmentStatus.Assigned => Ok(result.Job),
                 RenderJobAssignmentStatus.RendererOffline => RendererHeartbeatRequired(),
+                RenderJobAssignmentStatus.RendererVersionUnsupported => StatusCode(StatusCodes.Status426UpgradeRequired, new
+                {
+                    message = "This ClientRenderer version is not supported. Please update the renderer."
+                }),
                 RenderJobAssignmentStatus.RendererBusy => Conflict(new { message = "Renderer is already assigned an active render job.", jobId = result.CurrentJobId }),
                 RenderJobAssignmentStatus.NoQueuedJobs => NotFound(),
                 RenderJobAssignmentStatus.HigherPriorityRendererAvailable => Conflict(new
